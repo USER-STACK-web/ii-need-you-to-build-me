@@ -579,6 +579,97 @@
       font-size: 14px;
     }
 
+    .task-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+
+    .kanban-board {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(260px, 1fr));
+      gap: 18px;
+      align-items: start;
+    }
+
+    .kanban-column {
+      min-height: 520px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      overflow: hidden;
+    }
+
+    .kanban-head {
+      min-height: 64px;
+      padding: 18px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      font-weight: 850;
+      font-size: 18px;
+    }
+
+    .kanban-body {
+      min-height: 450px;
+      padding: 14px;
+      display: grid;
+      align-content: start;
+      gap: 14px;
+      transition: background .18s ease;
+    }
+
+    .kanban-body.drag-over {
+      background: rgba(37, 99, 235, .08);
+    }
+
+    .kanban-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 16px;
+      display: grid;
+      gap: 12px;
+      cursor: grab;
+      box-shadow: 0 12px 28px rgba(0, 0, 0, .05);
+    }
+
+    .kanban-card:active {
+      cursor: grabbing;
+    }
+
+    .kanban-card.dragging {
+      opacity: .55;
+      transform: scale(.98);
+    }
+
+    .kanban-card h3 {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.25;
+      overflow-wrap: anywhere;
+    }
+
+    .kanban-meta {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.35;
+      display: grid;
+      gap: 4px;
+    }
+
+    .kanban-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
     .select-status {
       height: 38px;
       border: 1px solid var(--line);
@@ -870,6 +961,7 @@
       .recent-grid, .stats, .form-grid { grid-template-columns: 1fr; }
       .admin-grid { grid-template-columns: 1fr; }
       .credential-fields { grid-template-columns: 1fr; }
+      .kanban-board { grid-template-columns: 1fr; }
       .task-row {
         grid-template-columns: 1fr;
       }
@@ -1020,7 +1112,17 @@
               Create Task
             </button>
           </div>
-          <div class="list-panel" id="taskList"></div>
+          <div class="task-toolbar">
+            <button class="mini-btn dark-btn" id="exportPdf">
+              <svg viewBox="0 0 24 24"><path d="M6 9V2h12v7"></path><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><path d="M6 14h12v8H6z"></path></svg>
+              Export PDF
+            </button>
+            <button class="mini-btn" id="exportExcel">
+              <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="M7 10l5 5 5-5"></path><path d="M12 15V3"></path></svg>
+              Export Excel
+            </button>
+          </div>
+          <div class="kanban-board" id="taskBoard"></div>
         </section>
 
         <section class="view" id="team">
@@ -1408,19 +1510,45 @@
     }
 
     function renderTaskList() {
-      $("taskList").innerHTML = state.tasks.length ? state.tasks.map((task) => `
-        <div class="task-row">
-          <div><strong>${escapeHtml(task.title)}</strong><small>${escapeHtml(task.company || task.category || "Task")}</small></div>
-          <span class="chip ${priorityClass(task.priority)}">${escapeHtml(task.priority)}</span>
-          <select class="select-status" data-status-task="${task.id}">
-            <option ${task.status === "Pending" ? "selected" : ""}>Pending</option>
-            <option ${task.status === "In Progress" ? "selected" : ""}>In Progress</option>
-            <option ${task.status === "Completed" ? "selected" : ""}>Completed</option>
-          </select>
-          <span>${shortDate(task.due)}</span>
-          <button data-delete-task="${task.id}" title="Delete task"><svg viewBox="0 0 24 24"><path d="M3 6h18"></path><path d="M8 6V4h8v2"></path><path d="M19 6l-1 14H6L5 6"></path></svg></button>
-        </div>
-      `).join("") : `<div class="empty">No tasks yet. Create one from the top right.</div>`;
+      const columns = ["Pending", "In Progress", "Completed"];
+      $("taskBoard").innerHTML = columns.map((status) => {
+        const tasks = state.tasks.filter((task) => task.status === status);
+        return `
+          <section class="kanban-column">
+            <div class="kanban-head">
+              <span>${status}</span>
+              <span>${tasks.length}</span>
+            </div>
+            <div class="kanban-body" data-drop-status="${status}">
+              ${tasks.map(kanbanCard).join("") || `<div class="empty">No ${status.toLowerCase()} tasks</div>`}
+            </div>
+          </section>
+        `;
+      }).join("");
+    }
+
+    function kanbanCard(task) {
+      return `
+        <article class="kanban-card" draggable="true" data-task-id="${task.id}">
+          <div class="task-top">
+            <h3>${escapeHtml(task.title)}</h3>
+            <div class="task-actions">
+              <button title="Edit task" data-edit-task="${task.id}"><svg viewBox="0 0 24 24"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg></button>
+              <button title="Delete task" data-delete-task="${task.id}"><svg viewBox="0 0 24 24"><path d="M3 6h18"></path><path d="M8 6V4h8v2"></path><path d="M19 6l-1 14H6L5 6"></path></svg></button>
+            </div>
+          </div>
+          <div class="chips">
+            <span class="chip ${priorityClass(task.priority)}">${escapeHtml(task.priority)}</span>
+            <span class="chip ${statusClass(task.status)}">${escapeHtml(task.status)}</span>
+            <span class="chip audit">${escapeHtml(task.category || "General")}</span>
+          </div>
+          <div class="kanban-meta">
+            <span>${escapeHtml(task.company || "No company")}</span>
+            <span>Owner: ${escapeHtml(task.owner || "Unassigned")}</span>
+            <span>Due: ${shortDate(task.due)}</span>
+          </div>
+        </article>
+      `;
     }
 
     function renderTeam() {
@@ -1580,12 +1708,82 @@ Task Master Admin`;
       state.activity = state.activity.slice(0, 20);
     }
 
+    function csvEscape(value) {
+      return `"${String(value ?? "").replace(/"/g, '""')}"`;
+    }
+
+    function exportTasksExcel() {
+      const headers = ["Title", "Company", "Priority", "Status", "Owner", "Category", "Created", "Due", "Notes"];
+      const rows = state.tasks.map((task) => [
+        task.title,
+        task.company,
+        task.priority,
+        task.status,
+        task.owner,
+        task.category,
+        task.created,
+        task.due,
+        task.notes
+      ]);
+      const csv = [headers, ...rows].map((row) => row.map(csvEscape).join(",")).join("\r\n");
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = `task-master-tasks-${today}.csv`;
+      link.click();
+      URL.revokeObjectURL(link.href);
+    }
+
+    function exportTasksPdf() {
+      const rows = state.tasks.map((task) => `
+        <tr>
+          <td>${escapeHtml(task.title)}</td>
+          <td>${escapeHtml(task.company || "")}</td>
+          <td>${escapeHtml(task.priority)}</td>
+          <td>${escapeHtml(task.status)}</td>
+          <td>${escapeHtml(task.owner || "")}</td>
+          <td>${escapeHtml(task.category || "")}</td>
+          <td>${shortDate(task.due)}</td>
+        </tr>
+      `).join("");
+      const win = window.open("", "_blank");
+      win.document.write(`
+        <!doctype html>
+        <html>
+          <head>
+            <title>Task Master Export</title>
+            <style>
+              body { font-family: Arial, sans-serif; padding: 24px; color: #111; }
+              h1 { margin: 0 0 18px; }
+              table { width: 100%; border-collapse: collapse; font-size: 12px; }
+              th, td { border: 1px solid #ddd; padding: 8px; text-align: left; vertical-align: top; }
+              th { background: #f3f3f3; }
+            </style>
+          </head>
+          <body>
+            <h1>Task Master Tasks</h1>
+            <table>
+              <thead>
+                <tr><th>Title</th><th>Company</th><th>Priority</th><th>Status</th><th>Owner</th><th>Category</th><th>Due</th></tr>
+              </thead>
+              <tbody>${rows || `<tr><td colspan="7">No tasks available</td></tr>`}</tbody>
+            </table>
+          </body>
+        </html>
+      `);
+      win.document.close();
+      win.focus();
+      win.print();
+    }
+
     document.querySelectorAll("[data-view-target]").forEach((button) => {
       button.addEventListener("click", () => setView(button.dataset.viewTarget));
     });
 
     $("openCreateFromHero").addEventListener("click", () => openDrawer());
     $("openCreateFromTasks").addEventListener("click", () => openDrawer());
+    $("exportPdf").addEventListener("click", exportTasksPdf);
+    $("exportExcel").addEventListener("click", exportTasksExcel);
     $("closeDrawer").addEventListener("click", closeDrawer);
     $("cancelCreate").addEventListener("click", closeDrawer);
     $("drawerBackdrop").addEventListener("click", closeDrawer);
@@ -1707,6 +1905,50 @@ Task Master Admin`;
           addActivity(`Copied login link: ${user.email}`);
           render();
         }
+      }
+    });
+
+    document.body.addEventListener("dragstart", (event) => {
+      const card = event.target.closest("[data-task-id]");
+      if (!card) return;
+      event.dataTransfer.setData("text/plain", card.dataset.taskId);
+      event.dataTransfer.effectAllowed = "move";
+      card.classList.add("dragging");
+    });
+
+    document.body.addEventListener("dragend", (event) => {
+      const card = event.target.closest("[data-task-id]");
+      if (card) card.classList.remove("dragging");
+      document.querySelectorAll(".kanban-body").forEach((body) => body.classList.remove("drag-over"));
+    });
+
+    document.body.addEventListener("dragover", (event) => {
+      const dropZone = event.target.closest("[data-drop-status]");
+      if (!dropZone) return;
+      event.preventDefault();
+      dropZone.classList.add("drag-over");
+    });
+
+    document.body.addEventListener("dragleave", (event) => {
+      const dropZone = event.target.closest("[data-drop-status]");
+      if (dropZone && !dropZone.contains(event.relatedTarget)) {
+        dropZone.classList.remove("drag-over");
+      }
+    });
+
+    document.body.addEventListener("drop", (event) => {
+      const dropZone = event.target.closest("[data-drop-status]");
+      if (!dropZone) return;
+      event.preventDefault();
+      dropZone.classList.remove("drag-over");
+      const taskId = event.dataTransfer.getData("text/plain");
+      const task = state.tasks.find((item) => item.id === taskId);
+      if (!task) return;
+      const nextStatus = dropZone.dataset.dropStatus;
+      if (task.status !== nextStatus) {
+        task.status = nextStatus;
+        addActivity(`Moved task: ${task.title} to ${nextStatus}`);
+        render();
       }
     });
 
