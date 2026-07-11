@@ -631,12 +631,12 @@
     .kanban-card {
       background: var(--panel);
       border: 1px solid var(--line);
-      border-radius: 16px;
-      padding: 16px;
+      border-radius: 18px;
+      padding: 24px;
       display: grid;
-      gap: 12px;
+      gap: 14px;
       cursor: grab;
-      box-shadow: 0 12px 28px rgba(0, 0, 0, .05);
+      box-shadow: 0 12px 22px rgba(0, 0, 0, .10);
     }
 
     .kanban-card:active {
@@ -650,24 +650,136 @@
 
     .kanban-card h3 {
       margin: 0;
-      font-size: 18px;
+      font-size: 22px;
       line-height: 1.25;
+      font-weight: 850;
+      overflow-wrap: anywhere;
+    }
+
+    .card-subtitle {
+      color: var(--muted);
+      font-size: 19px;
+      line-height: 1.35;
       overflow-wrap: anywhere;
     }
 
     .kanban-meta {
       color: var(--muted);
-      font-size: 14px;
+      font-size: 18px;
       line-height: 1.35;
       display: grid;
-      gap: 4px;
+      gap: 10px;
+    }
+
+    .kanban-meta span,
+    .comment-toggle,
+    .overdue-line,
+    .card-people {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .kanban-meta svg,
+    .comment-toggle svg,
+    .overdue-line svg,
+    .card-people svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .overdue-line {
+      color: #ff3030;
+      font-size: 18px;
+      font-weight: 800;
+    }
+
+    .card-people {
+      color: var(--muted);
+      font-size: 18px;
+      flex-wrap: wrap;
+    }
+
+    .card-owner {
+      color: var(--purple);
+    }
+
+    .status-segments {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 2px;
+    }
+
+    .status-segments button {
+      min-height: 39px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 0 17px;
+      background: #fff;
+      color: #555;
+      font-size: 16px;
+      font-weight: 650;
+    }
+
+    .status-segments button.active {
+      background: var(--black);
+      color: #fff;
+      border-color: var(--black);
+    }
+
+    body.dark .status-segments button.active {
+      color: #0b0b0b;
+    }
+
+    .bin-row {
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .bin-btn {
+      min-height: 38px;
+      border: 1px solid rgba(239, 68, 68, .35);
+      border-radius: 999px;
+      padding: 0 14px;
+      color: var(--red);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 15px;
+      font-weight: 750;
     }
 
     .kanban-actions {
       display: flex;
-      gap: 8px;
+      gap: 16px;
       flex-wrap: wrap;
       justify-content: flex-end;
+      color: var(--muted);
+    }
+
+    .kanban-actions button {
+      width: 26px;
+      height: 26px;
+      display: grid;
+      place-items: center;
+    }
+
+    .comment-toggle {
+      width: 100%;
+      margin-top: 6px;
+      padding-top: 16px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 18px;
+      justify-content: space-between;
+      cursor: pointer;
+    }
+
+    .comment-toggle span {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
     }
 
     .select-status {
@@ -1542,6 +1654,14 @@
       return "pending";
     }
 
+    function overdueText(task) {
+      if (!task.due || task.status === "Completed" || task.due >= today) return "";
+      const dueDate = new Date(`${task.due}T00:00:00`);
+      const todayDate = new Date(`${today}T00:00:00`);
+      const days = Math.max(1, Math.round((todayDate - dueDate) / 86400000));
+      return `Overdue by ${days} day${days === 1 ? "" : "s"}`;
+    }
+
     function taskCard(task) {
       return `
         <article class="task-card">
@@ -1593,27 +1713,37 @@
     }
 
     function kanbanCard(task) {
+      const overdue = overdueText(task);
       return `
         <article class="kanban-card" draggable="true" data-task-id="${task.id}">
           <div class="task-top">
             <h3>${escapeHtml(task.title)}</h3>
             <div class="task-actions">
               <button title="Edit task" data-edit-task="${task.id}"><svg viewBox="0 0 24 24"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg></button>
-              <button title="Comments" data-comment-task="${task.id}"><svg viewBox="0 0 24 24"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"></path></svg></button>
-              <button title="Delete task" data-delete-task="${task.id}"><svg viewBox="0 0 24 24"><path d="M3 6h18"></path><path d="M8 6V4h8v2"></path><path d="M19 6l-1 14H6L5 6"></path></svg></button>
+              <button title="Open task" data-edit-task="${task.id}"><svg viewBox="0 0 24 24"><path d="M7 17L17 7"></path><path d="M7 7h10v10"></path></svg></button>
             </div>
           </div>
+          <div class="card-subtitle">${escapeHtml(task.notes || task.company || "No notes added")}</div>
           <div class="chips">
             <span class="chip ${priorityClass(task.priority)}">${escapeHtml(task.priority)}</span>
             <span class="chip ${statusClass(task.status)}">${escapeHtml(task.status)}</span>
             <span class="chip audit">${escapeHtml(task.category || "General")}</span>
           </div>
           <div class="kanban-meta">
-            <span>${escapeHtml(task.company || "No company")}</span>
-            <span>Owner: ${escapeHtml(task.owner || "Unassigned")}</span>
-            <span>Due: ${shortDate(task.due)}</span>
-            <span>Comments: ${(task.comments || []).length}</span>
+            <span><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v6l4 2"></path></svg>Created ${shortDate(task.created)}</span>
+            ${overdue ? `<span class="overdue-line"><svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg>${escapeHtml(overdue)}</span>` : ""}
+            <span class="card-people"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>${escapeHtml(task.company || "work")} <span class="card-owner"><svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"></rect><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>${escapeHtml(task.owner || "Unassigned")}</span></span>
           </div>
+          <div class="status-segments">
+            ${["Pending", "In Progress", "Completed"].map((status) => `<button class="${task.status === status ? "active" : ""}" data-set-status="${task.id}" data-next-status="${status}">${status}</button>`).join("")}
+          </div>
+          <div class="bin-row">
+            <button class="bin-btn" data-delete-task="${task.id}"><svg viewBox="0 0 24 24"><path d="M3 6h18"></path><path d="M8 6V4h8v2"></path><path d="M19 6l-1 14H6L5 6"></path></svg>Bin</button>
+          </div>
+          <button class="comment-toggle" data-comment-task="${task.id}">
+            <span><svg viewBox="0 0 24 24"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"></path></svg>Comments ${(task.comments || []).length ? `(${(task.comments || []).length})` : ""}</span>
+            <svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"></path></svg>
+          </button>
         </article>
       `;
     }
@@ -1928,10 +2058,20 @@ Task Master Admin`;
       const deleteUserButton = event.target.closest("[data-delete-user]");
       const copyInviteButton = event.target.closest("[data-copy-invite]");
       const copyLoginButton = event.target.closest("[data-copy-login]");
+      const setStatusButton = event.target.closest("[data-set-status]");
 
       if (editButton) {
         const task = state.tasks.find((item) => item.id === editButton.dataset.editTask);
         if (task) openDrawer(task);
+      }
+
+      if (setStatusButton) {
+        const task = state.tasks.find((item) => item.id === setStatusButton.dataset.setStatus);
+        if (task && task.status !== setStatusButton.dataset.nextStatus) {
+          task.status = setStatusButton.dataset.nextStatus;
+          addActivity(`Changed status: ${task.title} to ${task.status}`);
+          render();
+        }
       }
 
       if (commentButton) {
