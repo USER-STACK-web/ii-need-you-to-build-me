@@ -906,6 +906,51 @@
       overflow: auto;
     }
 
+    .comment-panel {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      display: none;
+      gap: 12px;
+      background: var(--panel);
+    }
+
+    .comment-panel.show {
+      display: grid;
+    }
+
+    .comment-list {
+      display: grid;
+      gap: 10px;
+      max-height: 220px;
+      overflow: auto;
+    }
+
+    .comment-item {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px;
+      display: grid;
+      gap: 6px;
+      background: var(--soft);
+    }
+
+    .comment-item strong {
+      font-size: 14px;
+    }
+
+    .comment-item time {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .comment-item p {
+      margin: 0;
+      font-size: 14px;
+      line-height: 1.4;
+      overflow-wrap: anywhere;
+    }
+
     .drawer-actions {
       display: flex;
       gap: 10px;
@@ -1262,6 +1307,15 @@
         Notes
         <textarea id="taskNotes" placeholder="Add task notes, comments, or next steps"></textarea>
       </label>
+      <section class="comment-panel" id="commentPanel">
+        <strong>Comments</strong>
+        <div class="comment-list" id="commentList"></div>
+        <label>
+          Add comment
+          <textarea id="taskComment" placeholder="Write a comment for this task"></textarea>
+        </label>
+        <button class="secondary-btn" type="button" id="addComment">Add Comment</button>
+      </section>
       <div class="drawer-actions">
         <button class="save-btn" type="submit">Save Task</button>
         <button class="secondary-btn" type="button" id="cancelCreate">Cancel</button>
@@ -1287,6 +1341,16 @@
       const date = new Date(`${value}T00:00:00`);
       return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
     };
+    const formatCommentTime = (value) => {
+      if (!value) return "";
+      return new Date(value).toLocaleString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+        hour: "numeric",
+        minute: "2-digit"
+      });
+    };
 
     function createState() {
       return {
@@ -1304,9 +1368,9 @@
           { id: crypto.randomUUID(), name: "HarshVardhan", email: "admin@taskmaster.local", role: "Admin", userId: "TM-ADMIN", password: "Admin@123", status: "Active" }
         ],
         tasks: [
-          { id: crypto.randomUUID(), title: "Prepare payroll sheet", company: "Northstar Advisory", priority: "Medium", status: "In Progress", owner: "Riya", category: "Payroll", created: today, due: today, notes: "Attendance pending" },
-          { id: crypto.randomUUID(), title: "GST document collection", company: "Meridian Foods", priority: "High", status: "Pending", owner: "Neha", category: "Tax", created: today, due: today, notes: "Waiting for invoice dump" },
-          { id: crypto.randomUUID(), title: "Review client task ageing", company: "Acme Pvt Ltd", priority: "Low", status: "Completed", owner: "Karan", category: "Operations", created: today, due: today, notes: "Ready for partner review" }
+          { id: crypto.randomUUID(), title: "Prepare payroll sheet", company: "Northstar Advisory", priority: "Medium", status: "In Progress", owner: "Riya", category: "Payroll", created: today, due: today, notes: "Attendance pending", comments: [] },
+          { id: crypto.randomUUID(), title: "GST document collection", company: "Meridian Foods", priority: "High", status: "Pending", owner: "Neha", category: "Tax", created: today, due: today, notes: "Waiting for invoice dump", comments: [] },
+          { id: crypto.randomUUID(), title: "Review client task ageing", company: "Acme Pvt Ltd", priority: "Low", status: "Completed", owner: "Karan", category: "Operations", created: today, due: today, notes: "Ready for partner review", comments: [] }
         ]
       };
     }
@@ -1485,6 +1549,7 @@
             <h3 class="task-title ${task.status === "Completed" ? "completed-title" : ""}">${escapeHtml(task.title)}</h3>
             <div class="task-actions">
               <button title="Edit task" data-edit-task="${task.id}"><svg viewBox="0 0 24 24"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg></button>
+              <button title="Comments" data-comment-task="${task.id}"><svg viewBox="0 0 24 24"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"></path></svg></button>
               <button title="Open task"><svg viewBox="0 0 24 24"><path d="M7 17L17 7"></path><path d="M7 7h10v10"></path></svg></button>
               <button title="Complete task" data-complete-task="${task.id}"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M9 12l2 2 4-4"></path></svg></button>
             </div>
@@ -1534,6 +1599,7 @@
             <h3>${escapeHtml(task.title)}</h3>
             <div class="task-actions">
               <button title="Edit task" data-edit-task="${task.id}"><svg viewBox="0 0 24 24"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg></button>
+              <button title="Comments" data-comment-task="${task.id}"><svg viewBox="0 0 24 24"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"></path></svg></button>
               <button title="Delete task" data-delete-task="${task.id}"><svg viewBox="0 0 24 24"><path d="M3 6h18"></path><path d="M8 6V4h8v2"></path><path d="M19 6l-1 14H6L5 6"></path></svg></button>
             </div>
           </div>
@@ -1546,9 +1612,21 @@
             <span>${escapeHtml(task.company || "No company")}</span>
             <span>Owner: ${escapeHtml(task.owner || "Unassigned")}</span>
             <span>Due: ${shortDate(task.due)}</span>
+            <span>Comments: ${(task.comments || []).length}</span>
           </div>
         </article>
       `;
+    }
+
+    function renderComments(task) {
+      const comments = task?.comments || [];
+      $("commentList").innerHTML = comments.length ? comments.map((comment) => `
+        <article class="comment-item">
+          <strong>${escapeHtml(comment.author || "User")}</strong>
+          <time>${escapeHtml(formatCommentTime(comment.createdAt))}</time>
+          <p>${escapeHtml(comment.text)}</p>
+        </article>
+      `).join("") : `<div class="empty">No comments yet.</div>`;
     }
 
     function renderTeam() {
@@ -1689,6 +1767,9 @@ Task Master Admin`;
       $("taskCreated").value = task?.created || today;
       $("taskDue").value = task?.due || today;
       $("taskNotes").value = task?.notes || "";
+      $("taskComment").value = "";
+      $("commentPanel").classList.toggle("show", !!task);
+      if (task) renderComments(task);
       $("taskTitle").focus();
     }
 
@@ -1698,6 +1779,9 @@ Task Master Admin`;
       $("taskDrawer").setAttribute("aria-hidden", "true");
       $("taskForm").reset();
       $("taskForm").dataset.editing = "";
+      $("taskComment").value = "";
+      $("commentPanel").classList.remove("show");
+      $("commentList").innerHTML = "";
     }
 
     function addActivity(text) {
@@ -1713,7 +1797,7 @@ Task Master Admin`;
     }
 
     function exportTasksExcel() {
-      const headers = ["Title", "Company", "Priority", "Status", "Owner", "Category", "Created", "Due", "Notes"];
+      const headers = ["Title", "Company", "Priority", "Status", "Owner", "Category", "Created", "Due", "Notes", "Comments"];
       const rows = state.tasks.map((task) => [
         task.title,
         task.company,
@@ -1723,7 +1807,8 @@ Task Master Admin`;
         task.category,
         task.created,
         task.due,
-        task.notes
+        task.notes,
+        (task.comments || []).map((comment) => `${formatCommentTime(comment.createdAt)} - ${comment.author}: ${comment.text}`).join(" | ")
       ]);
       const csv = [headers, ...rows].map((row) => row.map(csvEscape).join(",")).join("\r\n");
       const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
@@ -1744,6 +1829,7 @@ Task Master Admin`;
           <td>${escapeHtml(task.owner || "")}</td>
           <td>${escapeHtml(task.category || "")}</td>
           <td>${shortDate(task.due)}</td>
+          <td>${escapeHtml((task.comments || []).map((comment) => `${formatCommentTime(comment.createdAt)} - ${comment.author}: ${comment.text}`).join(" | "))}</td>
         </tr>
       `).join("");
       const win = window.open("", "_blank");
@@ -1764,9 +1850,9 @@ Task Master Admin`;
             <h1>Task Master Tasks</h1>
             <table>
               <thead>
-                <tr><th>Title</th><th>Company</th><th>Priority</th><th>Status</th><th>Owner</th><th>Category</th><th>Due</th></tr>
+                <tr><th>Title</th><th>Company</th><th>Priority</th><th>Status</th><th>Owner</th><th>Category</th><th>Due</th><th>Comments</th></tr>
               </thead>
-              <tbody>${rows || `<tr><td colspan="7">No tasks available</td></tr>`}</tbody>
+              <tbody>${rows || `<tr><td colspan="8">No tasks available</td></tr>`}</tbody>
             </table>
           </body>
         </html>
@@ -1787,6 +1873,23 @@ Task Master Admin`;
     $("closeDrawer").addEventListener("click", closeDrawer);
     $("cancelCreate").addEventListener("click", closeDrawer);
     $("drawerBackdrop").addEventListener("click", closeDrawer);
+    $("addComment").addEventListener("click", () => {
+      const taskId = $("taskForm").dataset.editing;
+      const task = state.tasks.find((item) => item.id === taskId);
+      const text = $("taskComment").value.trim();
+      if (!task || !text) return;
+      task.comments = task.comments || [];
+      task.comments.unshift({
+        id: crypto.randomUUID(),
+        text,
+        author: currentUser?.name || state.profile.name || "User",
+        createdAt: new Date().toISOString()
+      });
+      $("taskComment").value = "";
+      addActivity(`Commented on task: ${task.title}`);
+      renderComments(task);
+      render();
+    });
 
     $("taskForm").addEventListener("submit", (event) => {
       event.preventDefault();
@@ -1807,7 +1910,7 @@ Task Master Admin`;
         state.tasks = state.tasks.map((task) => task.id === editingId ? { ...task, ...payload } : task);
         addActivity(`Updated task: ${payload.title}`);
       } else {
-        state.tasks.unshift({ id: crypto.randomUUID(), ...payload });
+        state.tasks.unshift({ id: crypto.randomUUID(), comments: [], ...payload });
         addActivity(`Created task: ${payload.title}`);
       }
 
@@ -1817,6 +1920,7 @@ Task Master Admin`;
 
     document.body.addEventListener("click", (event) => {
       const editButton = event.target.closest("[data-edit-task]");
+      const commentButton = event.target.closest("[data-comment-task]");
       const completeButton = event.target.closest("[data-complete-task]");
       const deleteButton = event.target.closest("[data-delete-task]");
       const acceptInviteButton = event.target.closest("[data-accept-invite]");
@@ -1827,6 +1931,11 @@ Task Master Admin`;
 
       if (editButton) {
         const task = state.tasks.find((item) => item.id === editButton.dataset.editTask);
+        if (task) openDrawer(task);
+      }
+
+      if (commentButton) {
+        const task = state.tasks.find((item) => item.id === commentButton.dataset.commentTask);
         if (task) openDrawer(task);
       }
 
