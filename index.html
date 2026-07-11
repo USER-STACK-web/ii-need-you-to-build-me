@@ -810,35 +810,138 @@
       background: var(--panel);
       border: 1px solid var(--line);
       border-radius: 18px;
-      overflow: hidden;
-      min-height: 720px;
+      padding: 26px;
       box-shadow: var(--shadow);
+      display: grid;
+      gap: 18px;
     }
 
-    .tally-toolbar {
-      min-height: 72px;
-      padding: 16px 18px;
-      border-bottom: 1px solid var(--line);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+    .tally-app-card,
+    .tally-status-card {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 22px;
       gap: 16px;
-      flex-wrap: wrap;
+      background: var(--soft);
     }
 
-    .tally-toolbar p {
+    .tally-app-card h2 {
+      margin: 0 0 8px;
+      font-size: 24px;
+      letter-spacing: 0;
+    }
+
+    .tally-app-card p,
+    .tally-note {
       margin: 0;
       color: var(--muted);
-      font-size: 15px;
+      font-size: 16px;
       line-height: 1.4;
     }
 
-    .tally-frame {
-      width: 100%;
-      height: 760px;
-      border: 0;
-      background: #fff;
-      display: block;
+    .pairing-code {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 18px;
+      background: var(--panel);
+      color: var(--ink);
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 34px;
+      font-weight: 850;
+      letter-spacing: 4px;
+      text-align: center;
+    }
+
+    .tally-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .setup-steps {
+      display: grid;
+      gap: 12px;
+      counter-reset: setup;
+    }
+
+    .setup-step {
+      display: grid;
+      grid-template-columns: 42px 1fr;
+      gap: 12px;
+      align-items: start;
+      color: var(--muted);
+      font-size: 16px;
+    }
+
+    .setup-step::before {
+      counter-increment: setup;
+      content: counter(setup);
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: var(--black);
+      color: #fff;
+      display: grid;
+      place-items: center;
+      font-weight: 850;
+    }
+
+    body.dark .setup-step::before {
+      color: #0b0b0b;
+    }
+
+    .tally-status-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .tally-status-card {
+      display: grid;
+      gap: 8px;
+      min-height: 118px;
+    }
+
+    .tally-status-card span {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .tally-status-card strong {
+      font-size: 19px;
+      overflow-wrap: anywhere;
+    }
+
+    .tally-tabs {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 14px;
+    }
+
+    .tally-tabs button {
+      min-height: 40px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      padding: 0 14px;
+      background: var(--panel);
+      font-weight: 750;
+    }
+
+    .tally-tabs button.active {
+      background: var(--black);
+      color: #fff;
+      border-color: var(--black);
+    }
+
+    body.dark .tally-tabs button.active {
+      color: #0b0b0b;
+    }
+
+    .tally-data-grid {
+      display: grid;
+      gap: 10px;
     }
 
     .admin-grid {
@@ -1334,18 +1437,8 @@
         <section class="view" id="tally">
           <div class="section-head">
             <h1 class="page-title">Tally Sync</h1>
-            <a class="create-task" id="openTallySync" href="http://localhost:5000" target="_blank" rel="noopener">
-              <svg viewBox="0 0 24 24"><path d="M7 17L17 7"></path><path d="M7 7h10v10"></path></svg>
-              Open Tally Sync
-            </a>
           </div>
-          <section class="tally-panel">
-            <div class="tally-toolbar">
-              <p>Use this panel when the local Tally Sync server is running on this computer.</p>
-              <p>Server: <strong>http://localhost:5000</strong></p>
-            </div>
-            <iframe class="tally-frame" id="tallyFrame" src="http://localhost:5000" title="Tally Sync"></iframe>
-          </section>
+          <section class="tally-panel" id="tallyPanel"></section>
         </section>
 
         <section class="view" id="bin">
@@ -1381,6 +1474,10 @@
               <label>
                 App link users should open
                 <input id="adminAppUrl" placeholder="Paste hosted/shared app link">
+              </label>
+              <label>
+                Tally Agent download URL
+                <input id="adminAgentDownloadUrl" placeholder="Paste latest .exe or installer download URL">
               </label>
               <label>
                 Full name
@@ -1528,7 +1625,25 @@
           currentUserId: ""
         },
         settings: {
-          appUrl: ""
+          appUrl: "",
+          tallyAgentDownloadUrl: "Tally Two-Way Sync.exe"
+        },
+        tally: {
+          agentConnected: false,
+          pairingCode: "",
+          device: "",
+          tallyStatus: "Unknown",
+          selectedCompany: "",
+          lastSync: "",
+          syncStatus: "Waiting for connection",
+          activeTab: "Overview",
+          companies: [],
+          vouchers: [],
+          ledgers: [],
+          debits: [],
+          credits: [],
+          outstanding: [],
+          logs: []
         },
         activity: [],
         invites: [],
@@ -1836,6 +1951,101 @@
       `).join("") : `<div class="empty">Activity will appear after you create or update tasks.</div>`;
     }
 
+    function ensurePairingCode() {
+      if (!state.tally.pairingCode) {
+        state.tally.pairingCode = String(Math.floor(100000 + Math.random() * 900000));
+      }
+      return state.tally.pairingCode;
+    }
+
+    function renderTally() {
+      ensurePairingCode();
+      if (!state.tally.agentConnected) {
+        $("tallyPanel").innerHTML = `
+          <div class="tally-app-card">
+            <div>
+              <h2>Connect Tally to your account</h2>
+              <p>The web app does not connect directly to Tally. Install the local Windows agent, pair it with this account, and keep Tally running on that computer.</p>
+            </div>
+            <div class="tally-actions">
+              <a class="mini-btn dark-btn" id="downloadTallyAgent" href="${escapeHtml(state.settings.tallyAgentDownloadUrl || "Tally Two-Way Sync.exe")}" download>Download Agent</a>
+              <button class="mini-btn" id="copyPairingCode">Copy Pairing Code</button>
+            </div>
+          </div>
+          <div class="setup-steps">
+            <div class="setup-step"><div><strong>Download the Tally Sync Agent</strong><br>Use the latest Windows installer or executable configured by Admin.</div></div>
+            <div class="setup-step"><div><strong>Open the agent on your Windows computer</strong><br>The agent runs locally and talks to Tally on that computer.</div></div>
+            <div class="setup-step"><div><strong>Keep Tally running</strong><br>Enable Tally XML/API access in Tally Prime.</div></div>
+            <div class="setup-step"><div><strong>Enter this pairing code in the agent</strong></div></div>
+          </div>
+          <div class="pairing-code">${escapeHtml(state.tally.pairingCode)}</div>
+          <div class="tally-status-grid">
+            <div class="tally-status-card"><span>Agent Status</span><strong>Not connected</strong></div>
+            <div class="tally-status-card"><span>Tally Status</span><strong>Unknown</strong></div>
+            <div class="tally-status-card"><span>Sync Status</span><strong>Waiting for connection</strong></div>
+            <div class="tally-status-card"><span>Device</span><strong>Not paired</strong></div>
+            <div class="tally-status-card"><span>Last Sync</span><strong>Never</strong></div>
+          </div>
+          <p class="tally-note">Backend pairing and heartbeat endpoints are required for production. This page is ready for that agent-backed flow and does not expose the local Tally port.</p>
+          <button class="mini-btn" id="simulateAgentConnected">Mark Agent Connected</button>
+        `;
+        return;
+      }
+
+      const tabs = ["Overview", "Vouchers", "Ledgers", "Debits", "Credits", "Outstanding", "Sync Activity"];
+      $("tallyPanel").innerHTML = `
+        <div class="tally-app-card">
+          <div>
+            <h2>Tally Connection: Connected</h2>
+            <p>Device: ${escapeHtml(state.tally.device || "Office-PC")} · Company: ${escapeHtml(state.tally.selectedCompany || "Not selected")}</p>
+          </div>
+          <div class="tally-actions">
+            <button class="mini-btn dark-btn" id="syncTallyNow">Sync Now</button>
+            <button class="mini-btn" id="changeTallyCompany">Change Company</button>
+            <button class="mini-btn" id="refreshTallyCompanies">Refresh Companies</button>
+            <button class="mini-btn danger-btn" id="disconnectTallyAgent">Disconnect</button>
+          </div>
+        </div>
+        <div class="tally-status-grid">
+          <div class="tally-status-card"><span>Agent</span><strong>Online</strong></div>
+          <div class="tally-status-card"><span>Tally Status</span><strong>${escapeHtml(state.tally.tallyStatus || "Running")}</strong></div>
+          <div class="tally-status-card"><span>Company</span><strong>${escapeHtml(state.tally.selectedCompany || "Select company")}</strong></div>
+          <div class="tally-status-card"><span>Last Sync</span><strong>${escapeHtml(state.tally.lastSync || "Never")}</strong></div>
+          <div class="tally-status-card"><span>Sync Status</span><strong>${escapeHtml(state.tally.syncStatus || "Ready")}</strong></div>
+        </div>
+        <label>
+          Company selection
+          <select id="tallyCompanySelect">
+            ${(state.tally.companies.length ? state.tally.companies : ["ABC Pvt Ltd", "Demo Company"]).map((company) => `<option ${state.tally.selectedCompany === company ? "selected" : ""}>${escapeHtml(company)}</option>`).join("")}
+          </select>
+        </label>
+        <div class="tally-tabs">
+          ${tabs.map((tab) => `<button class="${state.tally.activeTab === tab ? "active" : ""}" data-tally-tab="${tab}">${tab}</button>`).join("")}
+        </div>
+        <div class="tally-data-grid" id="tallyDataPanel">${renderTallyTab()}</div>
+      `;
+    }
+
+    function renderTallyTab() {
+      const tab = state.tally.activeTab || "Overview";
+      if (tab === "Overview") {
+        return `
+          <div class="tally-status-grid">
+            <div class="tally-status-card"><span>Vouchers</span><strong>${state.tally.vouchers.length}</strong></div>
+            <div class="tally-status-card"><span>Ledgers</span><strong>${state.tally.ledgers.length}</strong></div>
+            <div class="tally-status-card"><span>Debits</span><strong>${state.tally.debits.length}</strong></div>
+            <div class="tally-status-card"><span>Credits</span><strong>${state.tally.credits.length}</strong></div>
+            <div class="tally-status-card"><span>Outstanding</span><strong>${state.tally.outstanding.length}</strong></div>
+          </div>
+        `;
+      }
+      const key = tab === "Sync Activity" ? "logs" : tab.toLowerCase();
+      const rows = state.tally[key] || [];
+      return rows.length ? rows.map((row) => `
+        <div class="admin-row"><div><strong>${escapeHtml(row.title || row.name || row.type || "Sync row")}</strong><small>${escapeHtml(row.detail || row.status || row.amount || "")}</small></div><span></span></div>
+      `).join("") : `<div class="empty">No ${escapeHtml(tab.toLowerCase())} data synced yet.</div>`;
+    }
+
     function inviteMessage(invite) {
       return `Hello ${invite.name},
 
@@ -1899,6 +2109,7 @@ Task Master Admin`;
 
     function renderAdmin() {
       $("adminAppUrl").value = state.settings?.appUrl || appLink();
+      $("adminAgentDownloadUrl").value = state.settings?.tallyAgentDownloadUrl || "";
       $("inviteList").innerHTML = state.invites.length ? state.invites.map((invite) => `
         <div class="admin-row">
           <div>
@@ -1942,6 +2153,7 @@ Task Master Admin`;
       renderTaskList();
       renderTeam();
       renderActivity();
+      renderTally();
       renderAdmin();
       saveState();
     }
@@ -2122,6 +2334,7 @@ Task Master Admin`;
       const copyInviteButton = event.target.closest("[data-copy-invite]");
       const copyLoginButton = event.target.closest("[data-copy-login]");
       const setStatusButton = event.target.closest("[data-set-status]");
+      const tallyTabButton = event.target.closest("[data-tally-tab]");
 
       if (editButton) {
         const task = state.tasks.find((item) => item.id === editButton.dataset.editTask);
@@ -2218,6 +2431,60 @@ Task Master Admin`;
           render();
         }
       }
+
+      if (event.target.closest("#copyPairingCode")) {
+        navigator.clipboard?.writeText(state.tally.pairingCode);
+        addActivity("Copied Tally pairing code");
+        render();
+      }
+
+      if (event.target.closest("#simulateAgentConnected")) {
+        state.tally.agentConnected = true;
+        state.tally.device = "Office-PC";
+        state.tally.tallyStatus = "Running";
+        state.tally.companies = ["ABC Pvt Ltd", "Demo Company", "Northstar Advisory"];
+        state.tally.selectedCompany = state.tally.selectedCompany || state.tally.companies[0];
+        state.tally.syncStatus = "Connected, ready to sync";
+        state.tally.logs.unshift({ title: "Agent connected", detail: new Date().toLocaleString() });
+        addActivity("Tally Sync agent connected");
+        render();
+      }
+
+      if (event.target.closest("#disconnectTallyAgent")) {
+        state.tally.agentConnected = false;
+        state.tally.syncStatus = "Waiting for connection";
+        addActivity("Tally Sync agent disconnected");
+        render();
+      }
+
+      if (event.target.closest("#refreshTallyCompanies")) {
+        state.tally.companies = ["ABC Pvt Ltd", "Demo Company", "Northstar Advisory"];
+        state.tally.syncStatus = "Company list refreshed";
+        state.tally.logs.unshift({ title: "Company list refreshed", detail: new Date().toLocaleString() });
+        render();
+      }
+
+      if (event.target.closest("#changeTallyCompany")) {
+        $("tallyCompanySelect")?.focus();
+      }
+
+      if (event.target.closest("#syncTallyNow")) {
+        state.tally.lastSync = new Date().toLocaleString();
+        state.tally.syncStatus = "Sync completed";
+        state.tally.vouchers = [{ title: "Sales voucher sample", detail: "Synced from agent" }];
+        state.tally.ledgers = [{ title: "Cash", detail: "Ledger synced" }, { title: "Bank", detail: "Ledger synced" }];
+        state.tally.debits = [{ title: "Debit entry", amount: "INR 12,000" }];
+        state.tally.credits = [{ title: "Credit entry", amount: "INR 12,000" }];
+        state.tally.outstanding = [{ title: "Outstanding balance", amount: "INR 8,500" }];
+        state.tally.logs.unshift({ title: "Sync completed", detail: state.tally.lastSync });
+        addActivity("Tally data synced");
+        render();
+      }
+
+      if (tallyTabButton) {
+        state.tally.activeTab = tallyTabButton.dataset.tallyTab;
+        render();
+      }
     });
 
     document.body.addEventListener("dragstart", (event) => {
@@ -2266,6 +2533,14 @@ Task Master Admin`;
 
     document.body.addEventListener("change", (event) => {
       const select = event.target.closest("[data-status-task]");
+      const tallyCompany = event.target.closest("#tallyCompanySelect");
+      if (tallyCompany) {
+        state.tally.selectedCompany = tallyCompany.value;
+        state.tally.syncStatus = `Selected ${tallyCompany.value}`;
+        state.tally.logs.unshift({ title: "Company selected", detail: tallyCompany.value });
+        render();
+        return;
+      }
       if (!select) return;
       const task = state.tasks.find((item) => item.id === select.dataset.statusTask);
       if (!task) return;
@@ -2301,6 +2576,7 @@ Task Master Admin`;
     $("inviteForm").addEventListener("submit", (event) => {
       event.preventDefault();
       state.settings.appUrl = $("adminAppUrl").value.trim();
+      state.settings.tallyAgentDownloadUrl = $("adminAgentDownloadUrl").value.trim();
       const invite = {
         id: crypto.randomUUID(),
         name: $("inviteName").value,
@@ -2318,6 +2594,11 @@ Task Master Admin`;
 
     $("adminAppUrl").addEventListener("change", () => {
       state.settings.appUrl = $("adminAppUrl").value.trim();
+      saveState();
+    });
+
+    $("adminAgentDownloadUrl").addEventListener("change", () => {
+      state.settings.tallyAgentDownloadUrl = $("adminAgentDownloadUrl").value.trim();
       saveState();
     });
 

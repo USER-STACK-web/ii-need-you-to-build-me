@@ -30,3 +30,45 @@ Password: `Admin@123`
 ## Important
 
 This version stores app data in each browser's local storage. GitHub Pages gives everyone a public link to open the app, but a shared database is needed later if all users should see the exact same live tasks and users automatically.
+
+## Tally Sync Integration
+
+The app now includes a Tally Sync module designed for this architecture:
+
+```text
+Web App -> Backend -> Windows Tally Sync Agent -> Local Tally
+```
+
+Do not connect GitHub Pages directly to Tally or port `9000`.
+
+Development scaffold files:
+
+- `backend/server.py`
+- `agent/main.py`
+- `agent/tally_client.py`
+- `agent/api_client.py`
+- `agent/auth.py`
+- `agent/sync_manager.py`
+- `agent/command_processor.py`
+- `agent/config.py`
+- `agent/logger.py`
+
+Run the development backend:
+
+```powershell
+python backend/server.py
+```
+
+Pair a local agent:
+
+```powershell
+python -m agent.main pair <pairing-code>
+```
+
+Run the local agent:
+
+```powershell
+python -m agent.main run
+```
+
+See `TALLY_SYNC_ARCHITECTURE.md` for the full design.
