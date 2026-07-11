@@ -1626,7 +1626,7 @@
         },
         settings: {
           appUrl: "",
-          tallyAgentDownloadUrl: "Tally Two-Way Sync.exe"
+          tallyAgentDownloadUrl: "downloads/Tally-Two-Way-Sync.exe"
         },
         tally: {
           agentConnected: false,
@@ -1662,7 +1662,12 @@
       const saved = localStorage.getItem(storeKey);
       if (!saved) return createState();
       try {
-        return { ...createState(), ...JSON.parse(saved) };
+        const loaded = { ...createState(), ...JSON.parse(saved) };
+        if (!loaded.settings) loaded.settings = createState().settings;
+        if (!loaded.settings.tallyAgentDownloadUrl || loaded.settings.tallyAgentDownloadUrl === "Tally Two-Way Sync.exe") {
+          loaded.settings.tallyAgentDownloadUrl = "downloads/Tally-Two-Way-Sync.exe";
+        }
+        return loaded;
       } catch {
         return createState();
       }
@@ -1968,7 +1973,7 @@
               <p>The web app does not connect directly to Tally. Install the local Windows agent, pair it with this account, and keep Tally running on that computer.</p>
             </div>
             <div class="tally-actions">
-              <a class="mini-btn dark-btn" id="downloadTallyAgent" href="${escapeHtml(state.settings.tallyAgentDownloadUrl || "Tally Two-Way Sync.exe")}" download>Download Agent</a>
+              <a class="mini-btn dark-btn" id="downloadTallyAgent" href="${escapeHtml(state.settings.tallyAgentDownloadUrl || "downloads/Tally-Two-Way-Sync.exe")}" download>Download Agent</a>
               <button class="mini-btn" id="copyPairingCode">Copy Pairing Code</button>
             </div>
           </div>
