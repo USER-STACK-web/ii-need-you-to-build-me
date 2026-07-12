@@ -1008,6 +1008,179 @@
       justify-content: flex-end;
     }
 
+    .activity-layout,
+    .admin-monitor-layout,
+    .payslip-layout {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      gap: 22px;
+      align-items: start;
+    }
+
+    .calendar-card,
+    .work-card,
+    .filter-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 22px;
+      box-shadow: var(--shadow);
+    }
+
+    .calendar-head,
+    .compact-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .calendar-day-name {
+      text-align: center;
+      color: var(--muted);
+      font-weight: 800;
+      font-size: 13px;
+    }
+
+    .calendar-date {
+      min-height: 48px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      position: relative;
+      background: var(--panel);
+      font-weight: 750;
+    }
+
+    .calendar-date.other-month {
+      opacity: .32;
+    }
+
+    .calendar-date.selected {
+      background: var(--black);
+      color: #fff;
+    }
+
+    body.dark .calendar-date.selected {
+      color: #0b0b0b;
+    }
+
+    .calendar-date.has-entry::after {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--green);
+      position: absolute;
+      bottom: 7px;
+    }
+
+    .activity-form,
+    .filter-grid,
+    .salary-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .activity-form label.full,
+    .filter-grid label.full,
+    .salary-grid label.full {
+      grid-column: 1 / -1;
+    }
+
+    .table-wrap {
+      width: 100%;
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--panel);
+      margin-top: 18px;
+    }
+
+    .data-table {
+      width: 100%;
+      min-width: 860px;
+      border-collapse: collapse;
+      font-size: 15px;
+    }
+
+    .data-table th,
+    .data-table td {
+      border-bottom: 1px solid var(--line);
+      padding: 12px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .data-table th {
+      color: var(--muted);
+      background: var(--soft);
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+
+    .data-table tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 13px;
+      font-weight: 850;
+      background: var(--soft);
+      color: var(--ink);
+    }
+
+    .status-pill.approved,
+    .status-pill.paid {
+      background: rgba(0, 168, 118, .12);
+      color: var(--green);
+    }
+
+    .status-pill.rejected {
+      background: rgba(239, 68, 68, .1);
+      color: var(--red);
+    }
+
+    .status-pill.draft {
+      background: rgba(245, 158, 11, .12);
+      color: var(--orange);
+    }
+
+    .total-strip {
+      margin-top: 14px;
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      background: var(--soft);
+      font-weight: 850;
+      flex-wrap: wrap;
+    }
+
+    .inline-input {
+      width: 130px;
+      min-height: 38px;
+      border-radius: 10px;
+      padding: 8px 10px;
+    }
+
     .credential-fields {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -1255,6 +1428,8 @@
       }
       .recent-grid, .stats, .form-grid { grid-template-columns: 1fr; }
       .admin-grid { grid-template-columns: 1fr; }
+      .activity-layout, .admin-monitor-layout, .payslip-layout { grid-template-columns: 1fr; }
+      .activity-form, .filter-grid, .salary-grid { grid-template-columns: 1fr; }
       .credential-fields { grid-template-columns: 1fr; }
       .kanban-board { grid-template-columns: 1fr; }
       .task-row {
@@ -1320,6 +1495,10 @@
           <svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
           Activity Log
         </button>
+        <button data-view-target="myPayslips" id="myPayslipsNavButton">
+          <svg viewBox="0 0 24 24"><path d="M7 3h10l4 4v14H7z"></path><path d="M17 3v5h5"></path><path d="M10 13h8"></path><path d="M10 17h5"></path></svg>
+          My Payslips
+        </button>
         <button data-view-target="tally" id="tallyNavButton">
           <svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z"></path><path d="M8 8h8"></path><path d="M8 12h8"></path><path d="M8 16h5"></path></svg>
           Tally Sync
@@ -1331,6 +1510,14 @@
         <button data-view-target="admin" id="adminNavButton">
           <svg viewBox="0 0 24 24"><path d="M12 2l7 4v6c0 5-3.5 8.5-7 10-3.5-1.5-7-5-7-10V6z"></path><path d="M9 12l2 2 4-4"></path></svg>
           Admin
+        </button>
+        <button data-view-target="adminActivity" id="adminActivityNavButton">
+          <svg viewBox="0 0 24 24"><path d="M3 3v18h18"></path><path d="M7 14l3-3 3 2 5-7"></path></svg>
+          Admin Activity
+        </button>
+        <button data-view-target="payslips" id="payslipNavButton">
+          <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"></rect><path d="M7 9h10"></path><path d="M7 13h6"></path><path d="M15 17h2"></path></svg>
+          Payslip Generation
         </button>
       </nav>
 
@@ -1430,8 +1617,97 @@
         </section>
 
         <section class="view" id="activity">
-          <h1 class="page-title">Activity Log</h1>
-          <div class="list-panel" id="activityList"></div>
+          <div class="section-head">
+            <h1 class="page-title">Activity Log</h1>
+            <div class="compact-actions">
+              <span class="status-pill" id="activityEditStatus">Editable</span>
+            </div>
+          </div>
+          <div class="activity-layout">
+            <aside class="calendar-card">
+              <div class="calendar-head">
+                <button class="mini-btn" id="prevActivityMonth">Previous</button>
+                <strong id="activityMonthLabel"></strong>
+                <button class="mini-btn" id="nextActivityMonth">Next</button>
+              </div>
+              <div class="calendar-grid" id="activityCalendar"></div>
+            </aside>
+            <section class="work-card">
+              <div class="calendar-head">
+                <div>
+                  <h2 id="activitySelectedDateTitle">Selected date</h2>
+                  <p class="admin-note">Add every task completed on this date, then save the daily activity once.</p>
+                </div>
+                <strong id="dailyTotalHours">0h 0m</strong>
+              </div>
+              <form class="activity-form" id="dailyTaskForm">
+                <label>
+                  Task title
+                  <input id="dailyTaskTitle" required placeholder="Client GST review">
+                </label>
+                <label>
+                  Client / Project
+                  <input id="dailyTaskClient" placeholder="Client or project">
+                </label>
+                <label class="full">
+                  Task description
+                  <textarea id="dailyTaskDescription" placeholder="What was completed?"></textarea>
+                </label>
+                <label>
+                  Task category
+                  <input id="dailyTaskCategory" placeholder="Audit, Tax, Payroll">
+                </label>
+                <label>
+                  Task status
+                  <select id="dailyTaskStatus">
+                    <option>Pending</option>
+                    <option>In Progress</option>
+                    <option>Completed</option>
+                  </select>
+                </label>
+                <label>
+                  Hours worked
+                  <input id="dailyTaskHours" type="number" min="0" step="1" value="0">
+                </label>
+                <label>
+                  Minutes worked
+                  <input id="dailyTaskMinutes" type="number" min="0" max="59" step="1" value="0">
+                </label>
+                <label class="full">
+                  Additional remarks
+                  <textarea id="dailyTaskRemarks" placeholder="Anything admin should know?"></textarea>
+                </label>
+                <div class="compact-actions full">
+                  <button class="mini-btn" type="button" id="clearDailyTask">Clear</button>
+                  <button class="save-btn" type="submit" id="addDailyTask">Add Task</button>
+                  <button class="save-btn" type="button" id="saveDailyActivity">Save Daily Activity</button>
+                </div>
+              </form>
+              <div class="table-wrap">
+                <table class="data-table">
+                  <thead>
+                    <tr><th>Task</th><th>Client or Project</th><th>Hours</th><th>Minutes</th><th>Status</th><th>Remarks</th><th>Edit</th><th>Delete</th></tr>
+                  </thead>
+                  <tbody id="dailyTaskRows"></tbody>
+                </table>
+              </div>
+              <div class="total-strip"><span>Total worked for selected date</span><span id="dailyTotalFooter">0h 0m</span></div>
+            </section>
+          </div>
+        </section>
+
+        <section class="view" id="myPayslips">
+          <div class="section-head">
+            <h1 class="page-title">My Payslips</h1>
+          </div>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr><th>Salary Month</th><th>Gross Salary</th><th>Total Deductions</th><th>Net Salary</th><th>Status</th><th>Generated Date</th><th>Download</th></tr>
+              </thead>
+              <tbody id="myPayslipRows"></tbody>
+            </table>
+          </div>
         </section>
 
         <section class="view" id="tally">
@@ -1507,6 +1783,62 @@
                 <div class="admin-stack" id="userList"></div>
               </section>
             </div>
+          </div>
+        </section>
+
+        <section class="view" id="adminActivity">
+          <div class="section-head">
+            <h1 class="page-title">Admin Activity Monitoring</h1>
+            <button class="mini-btn dark-btn" id="exportAdminActivity">Export CSV</button>
+          </div>
+          <div class="admin-monitor-layout">
+            <aside class="filter-card">
+              <h2>Filters</h2>
+              <div class="filter-grid">
+                <label class="full">Search<input id="adminActivitySearch" placeholder="Employee, client, task"></label>
+                <label>Employee<select id="adminActivityEmployee"><option value="">All</option></select></label>
+                <label>Status<select id="adminActivityStatus"><option value="">All</option><option>Pending Approval</option><option>Approved</option><option>Rejected</option><option>Locked</option></select></label>
+                <label>From<input id="adminActivityFrom" type="date"></label>
+                <label>To<input id="adminActivityTo" type="date"></label>
+                <label>Month<input id="adminActivityMonth" type="month"></label>
+                <label>Client / Project<input id="adminActivityClient" placeholder="Client or project"></label>
+              </div>
+              <div class="total-strip"><span>Approved hours</span><span id="adminApprovedHours">0h 0m</span></div>
+              <div class="total-strip"><span>Missing today</span><span id="missingActivityUsers">0</span></div>
+            </aside>
+            <section class="work-card">
+              <div class="table-wrap">
+                <table class="data-table">
+                  <thead>
+                    <tr><th>Employee</th><th>ID</th><th>Date</th><th>Task details</th><th>Client</th><th>Time</th><th>Total</th><th>Status</th><th>Submitted</th><th>Updated</th><th>Admin</th></tr>
+                  </thead>
+                  <tbody id="adminActivityRows"></tbody>
+                </table>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <section class="view" id="payslips">
+          <div class="section-head">
+            <h1 class="page-title">Payslip Generation</h1>
+            <button class="mini-btn dark-btn" id="bulkPayslipDownload">Download Bulk PDFs</button>
+          </div>
+          <div class="filter-card">
+            <div class="filter-grid">
+              <label>Employee<select id="payslipEmployeeFilter"><option value="">All</option></select></label>
+              <label>Department<input id="payslipDepartmentFilter" placeholder="Department"></label>
+              <label>Salary month<input id="payslipMonthFilter" type="month"></label>
+              <label>Status<select id="payslipStatusFilter"><option value="">All</option><option>Draft</option><option>Generated</option><option>Paid</option></select></label>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr><th>Employee</th><th>ID</th><th>Details</th><th>Attendance</th><th>Approved Hours</th><th>Earnings</th><th>Deductions</th><th>Net Salary</th><th>Status</th><th>Actions</th></tr>
+              </thead>
+              <tbody id="payslipRows"></tbody>
+            </table>
           </div>
         </section>
       </main>
@@ -1626,7 +1958,8 @@
         },
         settings: {
           appUrl: "",
-          tallyAgentDownloadUrl: ""
+          tallyAgentDownloadUrl: "",
+          allowActivityEditAfterApproval: false
         },
         tally: {
           agentConnected: false,
@@ -1646,6 +1979,15 @@
           logs: []
         },
         activity: [],
+        activityEntries: [],
+        payslips: [],
+        employeeSalary: {},
+        activityUi: {
+          selectedDate: today,
+          calendarMonth: today.slice(0, 7),
+          editingTaskId: "",
+          adminSort: "date-desc"
+        },
         invites: [],
         users: [
           { id: crypto.randomUUID(), name: "HarshVardhan", email: "admin@taskmaster.local", role: "Admin", userId: "TM-ADMIN", password: "Admin@123", status: "Active" }
@@ -1664,6 +2006,19 @@
       try {
         const loaded = { ...createState(), ...JSON.parse(saved) };
         if (!loaded.settings) loaded.settings = createState().settings;
+        loaded.settings = { ...createState().settings, ...loaded.settings };
+        loaded.tally = { ...createState().tally, ...(loaded.tally || {}) };
+        loaded.activityEntries = loaded.activityEntries || [];
+        loaded.payslips = loaded.payslips || [];
+        loaded.employeeSalary = loaded.employeeSalary || {};
+        loaded.activityUi = { ...createState().activityUi, ...(loaded.activityUi || {}) };
+        loaded.users = (loaded.users || []).map((user) => ({
+          designation: user.role === "Admin" ? "Administrator" : "Employee",
+          department: "Operations",
+          bank: "",
+          pan: "",
+          ...user
+        }));
         const oldLocalDownloads = ["Tally Two-Way Sync.exe", "downloads/Tally-Two-Way-Sync.exe", "Tally-Two-Way-Sync.exe"];
         if (oldLocalDownloads.includes(loaded.settings.tallyAgentDownloadUrl)) {
           loaded.settings.tallyAgentDownloadUrl = "";
@@ -1774,10 +2129,10 @@
     }
 
     function setView(view) {
-      if (view === "admin" && currentUser?.role !== "Admin") {
+      if (["admin", "adminActivity", "payslips"].includes(view) && currentUser?.role !== "Admin") {
         view = "dashboard";
       }
-      if (view === "tally" && currentUser?.role === "Admin") {
+      if (["tally", "myPayslips"].includes(view) && currentUser?.role === "Admin") {
         view = "dashboard";
       }
       document.querySelectorAll(".view").forEach((node) => node.classList.toggle("active", node.id === view));
@@ -1822,11 +2177,14 @@
 
     function renderAccess() {
       $("adminNavButton").classList.toggle("hidden", currentUser?.role !== "Admin");
+      $("adminActivityNavButton").classList.toggle("hidden", currentUser?.role !== "Admin");
+      $("payslipNavButton").classList.toggle("hidden", currentUser?.role !== "Admin");
+      $("myPayslipsNavButton").classList.toggle("hidden", currentUser?.role === "Admin");
       $("tallyNavButton").classList.toggle("hidden", currentUser?.role === "Admin");
-      if (currentUser?.role !== "Admin" && $("admin").classList.contains("active")) {
+      if (currentUser?.role !== "Admin" && ($("admin").classList.contains("active") || $("adminActivity").classList.contains("active") || $("payslips").classList.contains("active"))) {
         setView("dashboard");
       }
-      if (currentUser?.role === "Admin" && $("tally").classList.contains("active")) {
+      if (currentUser?.role === "Admin" && ($("tally").classList.contains("active") || $("myPayslips").classList.contains("active"))) {
         setView("dashboard");
       }
     }
@@ -1972,10 +2330,157 @@
       }).join("") || `<div class="empty">No team members yet.</div>`;
     }
 
+    function employeeId(user) {
+      return user?.userId || user?.email || user?.id || "EMP";
+    }
+
+    function userName(userId) {
+      return state.users.find((user) => user.id === userId)?.name || "User";
+    }
+
+    function toMinutes(hours, minutes) {
+      return (Number(hours) || 0) * 60 + (Number(minutes) || 0);
+    }
+
+    function formatMinutes(total) {
+      const value = Math.max(0, Number(total) || 0);
+      return `${Math.floor(value / 60)}h ${value % 60}m`;
+    }
+
+    function activityEntriesForDate(date, userId = currentUser?.id) {
+      return state.activityEntries.filter((entry) => entry.activityDate === date && (!userId || entry.userId === userId));
+    }
+
+    function canEditActivity(entry) {
+      if (currentUser?.role === "Admin") return true;
+      if (entry?.approvalStatus === "Locked") return false;
+      if (entry?.approvalStatus === "Approved" && !state.settings.allowActivityEditAfterApproval) return false;
+      return true;
+    }
+
+    function selectedActivityDate() {
+      return state.activityUi.selectedDate || today;
+    }
+
     function renderActivity() {
-      $("activityList").innerHTML = state.activity.length ? state.activity.map((item) => `
-        <div class="task-row"><div><strong>${escapeHtml(item.text)}</strong><small>${escapeHtml(item.time)}</small></div><span></span><span></span><span></span><span></span></div>
-      `).join("") : `<div class="empty">Activity will appear after you create or update tasks.</div>`;
+      renderActivityCalendar();
+      renderDailyActivity();
+    }
+
+    function renderActivityCalendar() {
+      const month = state.activityUi.calendarMonth || today.slice(0, 7);
+      const [year, monthIndex] = month.split("-").map(Number);
+      const first = new Date(year, monthIndex - 1, 1);
+      const start = new Date(first);
+      start.setDate(1 - first.getDay());
+      const formatter = new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric" });
+      $("activityMonthLabel").textContent = formatter.format(first);
+      const names = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((name) => `<div class="calendar-day-name">${name}</div>`).join("");
+      const days = [];
+      for (let i = 0; i < 42; i += 1) {
+        const date = new Date(start);
+        date.setDate(start.getDate() + i);
+        const iso = date.toISOString().slice(0, 10);
+        const hasEntry = state.activityEntries.some((entry) => entry.activityDate === iso && (currentUser?.role === "Admin" || entry.userId === currentUser?.id));
+        days.push(`<button class="calendar-date ${date.getMonth() !== first.getMonth() ? "other-month" : ""} ${iso === selectedActivityDate() ? "selected" : ""} ${hasEntry ? "has-entry" : ""}" data-activity-date="${iso}">${date.getDate()}</button>`);
+      }
+      $("activityCalendar").innerHTML = names + days.join("");
+    }
+
+    function resetDailyTaskForm() {
+      $("dailyTaskForm").dataset.editing = "";
+      $("dailyTaskForm").reset();
+      $("dailyTaskHours").value = 0;
+      $("dailyTaskMinutes").value = 0;
+    }
+
+    function renderDailyActivity() {
+      const date = selectedActivityDate();
+      const entries = activityEntriesForDate(date);
+      const locked = entries.some((entry) => !canEditActivity(entry));
+      $("activityEditStatus").textContent = locked ? "Locked by admin" : "Editable";
+      $("activityEditStatus").className = `status-pill ${locked ? "approved" : "draft"}`;
+      $("activitySelectedDateTitle").textContent = shortDate(date);
+      const total = entries.reduce((sum, entry) => sum + toMinutes(entry.hours, entry.minutes), 0);
+      $("dailyTotalHours").textContent = formatMinutes(total);
+      $("dailyTotalFooter").textContent = formatMinutes(total);
+      $("dailyTaskRows").innerHTML = entries.length ? entries.map((entry) => `
+        <tr>
+          <td><strong>${escapeHtml(entry.taskTitle)}</strong><br><small>${escapeHtml(entry.taskDescription || "")}</small></td>
+          <td>${escapeHtml(entry.clientProject || "")}</td>
+          <td>${Number(entry.hours) || 0}</td>
+          <td>${Number(entry.minutes) || 0}</td>
+          <td><span class="status-pill">${escapeHtml(entry.status)}</span></td>
+          <td>${escapeHtml(entry.userRemarks || "")}</td>
+          <td><button class="mini-btn" data-edit-activity-task="${entry.activityId}" ${canEditActivity(entry) ? "" : "disabled"}>Edit</button></td>
+          <td><button class="mini-btn danger-btn" data-delete-activity-task="${entry.activityId}" ${canEditActivity(entry) ? "" : "disabled"}>Delete</button></td>
+        </tr>
+      `).join("") : `<tr><td colspan="8">No tasks entered for this date.</td></tr>`;
+    }
+
+    function saveDailyTaskFromForm() {
+      const title = $("dailyTaskTitle").value.trim();
+      const hours = Number($("dailyTaskHours").value || 0);
+      const minutes = Number($("dailyTaskMinutes").value || 0);
+      if (!title) {
+        alert("Task title is mandatory.");
+        return;
+      }
+      if (hours < 0 || minutes < 0 || minutes > 59) {
+        alert("Hours cannot be negative and minutes must be between 0 and 59.");
+        return;
+      }
+      const date = selectedActivityDate();
+      const editing = $("dailyTaskForm").dataset.editing;
+      const nowIso = new Date().toISOString();
+      const existing = state.activityEntries.find((entry) => entry.activityId === editing);
+      if (existing && !canEditActivity(existing)) {
+        alert("This entry is locked by admin.");
+        return;
+      }
+      const payload = {
+        activityId: editing || crypto.randomUUID(),
+        userId: currentUser.id,
+        employeeId: employeeId(currentUser),
+        employeeName: currentUser.name,
+        activityDate: date,
+        taskTitle: title,
+        taskDescription: $("dailyTaskDescription").value.trim(),
+        clientProject: $("dailyTaskClient").value.trim(),
+        taskCategory: $("dailyTaskCategory").value.trim(),
+        hours,
+        minutes,
+        status: $("dailyTaskStatus").value,
+        userRemarks: $("dailyTaskRemarks").value.trim(),
+        adminRemarks: existing?.adminRemarks || "",
+        approvalStatus: existing?.approvalStatus || "Pending Approval",
+        createdAt: existing?.createdAt || nowIso,
+        updatedAt: nowIso,
+        submittedAt: existing?.submittedAt || "",
+        approvedBy: existing?.approvedBy || "",
+        approvedAt: existing?.approvedAt || ""
+      };
+      if (existing) Object.assign(existing, payload);
+      else state.activityEntries.unshift(payload);
+      addActivity(`${editing ? "Updated" : "Added"} activity task: ${title}`);
+      resetDailyTaskForm();
+      render();
+    }
+
+    function saveDailyActivity() {
+      const date = selectedActivityDate();
+      const nowIso = new Date().toISOString();
+      let count = 0;
+      activityEntriesForDate(date).forEach((entry) => {
+        if (canEditActivity(entry)) {
+          entry.submittedAt = entry.submittedAt || nowIso;
+          entry.updatedAt = nowIso;
+          if (!entry.approvalStatus || entry.approvalStatus === "Draft") entry.approvalStatus = "Pending Approval";
+          count += 1;
+        }
+      });
+      addActivity(`Saved daily activity for ${shortDate(date)} (${count} task${count === 1 ? "" : "s"})`);
+      render();
     }
 
     function ensurePairingCode() {
@@ -2140,6 +2645,239 @@ Task Master Admin`;
       return `https://mail.google.com/mail/?${params.toString()}`;
     }
 
+    function filteredAdminActivities() {
+      let rows = [...state.activityEntries];
+      const employee = $("adminActivityEmployee")?.value || "";
+      const status = $("adminActivityStatus")?.value || "";
+      const from = $("adminActivityFrom")?.value || "";
+      const to = $("adminActivityTo")?.value || "";
+      const month = $("adminActivityMonth")?.value || "";
+      const client = ($("adminActivityClient")?.value || "").toLowerCase();
+      const search = ($("adminActivitySearch")?.value || "").toLowerCase();
+      if (employee) rows = rows.filter((row) => row.userId === employee);
+      if (status) rows = rows.filter((row) => row.approvalStatus === status);
+      if (from) rows = rows.filter((row) => row.activityDate >= from);
+      if (to) rows = rows.filter((row) => row.activityDate <= to);
+      if (month) rows = rows.filter((row) => row.activityDate.startsWith(month));
+      if (client) rows = rows.filter((row) => String(row.clientProject || "").toLowerCase().includes(client));
+      if (search) {
+        rows = rows.filter((row) => [row.employeeName, row.employeeId, row.taskTitle, row.taskDescription, row.clientProject, row.taskCategory].some((value) => String(value || "").toLowerCase().includes(search)));
+      }
+      return rows.sort((a, b) => `${b.activityDate}${b.updatedAt}`.localeCompare(`${a.activityDate}${a.updatedAt}`));
+    }
+
+    function renderAdminActivity() {
+      if (currentUser?.role !== "Admin") return;
+      const employeeSelect = $("adminActivityEmployee");
+      const current = employeeSelect.value;
+      employeeSelect.innerHTML = `<option value="">All</option>` + state.users.filter((user) => user.role !== "Admin").map((user) => `<option value="${user.id}" ${current === user.id ? "selected" : ""}>${escapeHtml(user.name)} (${escapeHtml(employeeId(user))})</option>`).join("");
+      const rows = filteredAdminActivities();
+      const totalsByDay = new Map();
+      rows.forEach((row) => {
+        const key = `${row.userId}-${row.activityDate}`;
+        totalsByDay.set(key, (totalsByDay.get(key) || 0) + toMinutes(row.hours, row.minutes));
+      });
+      const approvedMinutes = rows.filter((row) => row.approvalStatus === "Approved" || row.approvalStatus === "Locked").reduce((sum, row) => sum + toMinutes(row.hours, row.minutes), 0);
+      $("adminApprovedHours").textContent = formatMinutes(approvedMinutes);
+      const missing = state.users.filter((user) => user.role !== "Admin" && !state.activityEntries.some((entry) => entry.userId === user.id && entry.activityDate === today)).length;
+      $("missingActivityUsers").textContent = missing;
+      $("adminActivityRows").innerHTML = rows.length ? rows.map((row) => `
+        <tr>
+          <td>${escapeHtml(row.employeeName || userName(row.userId))}</td>
+          <td>${escapeHtml(row.employeeId)}</td>
+          <td>${shortDate(row.activityDate)}</td>
+          <td><strong>${escapeHtml(row.taskTitle)}</strong><br><small>${escapeHtml(row.taskDescription || row.taskCategory || "")}</small></td>
+          <td>${escapeHtml(row.clientProject || "")}</td>
+          <td>${formatMinutes(toMinutes(row.hours, row.minutes))}</td>
+          <td>${formatMinutes(totalsByDay.get(`${row.userId}-${row.activityDate}`) || 0)}</td>
+          <td><span class="status-pill ${String(row.approvalStatus).toLowerCase().replaceAll(" ", "-")}">${escapeHtml(row.approvalStatus)}</span><br><small>${escapeHtml(row.status)}</small></td>
+          <td>${row.submittedAt ? formatCommentTime(row.submittedAt) : "Not saved"}</td>
+          <td>${formatCommentTime(row.updatedAt)}</td>
+          <td>
+            <textarea class="inline-input" data-admin-remark="${row.activityId}" placeholder="Admin remarks">${escapeHtml(row.adminRemarks || "")}</textarea>
+            <div class="admin-actions">
+              <button class="mini-btn dark-btn" data-approve-activity="${row.activityId}">Approve</button>
+              <button class="mini-btn danger-btn" data-reject-activity="${row.activityId}">Reject</button>
+              <button class="mini-btn" data-lock-activity="${row.activityId}">Lock</button>
+              <button class="mini-btn" data-reopen-activity="${row.activityId}">Reopen</button>
+            </div>
+          </td>
+        </tr>
+      `).join("") : `<tr><td colspan="11">No activity entries match these filters.</td></tr>`;
+    }
+
+    function exportAdminActivityCsv() {
+      const headers = ["Employee", "Employee ID", "Date", "Task", "Description", "Client", "Hours", "Minutes", "Status", "Approval", "Submitted", "Updated", "Admin Remarks"];
+      const rows = filteredAdminActivities().map((row) => [row.employeeName, row.employeeId, row.activityDate, row.taskTitle, row.taskDescription, row.clientProject, row.hours, row.minutes, row.status, row.approvalStatus, row.submittedAt, row.updatedAt, row.adminRemarks]);
+      downloadCsv(`activity-monitoring-${today}.csv`, headers, rows);
+    }
+
+    function salaryConfig(user) {
+      const existing = state.employeeSalary[user.id] || {};
+      return {
+        basicSalary: 30000,
+        allowances: 0,
+        incentives: 0,
+        deductions: 0,
+        professionalTax: 0,
+        tds: 0,
+        otherDeductions: 0,
+        standardHours: 8,
+        standardDays: 22,
+        overtimeRate: 150,
+        taskIncentive: 0,
+        attendanceBased: false,
+        ...existing
+      };
+    }
+
+    function payslipCalculation(user, month) {
+      const config = salaryConfig(user);
+      const approved = state.activityEntries.filter((entry) => entry.userId === user.id && entry.activityDate.startsWith(month) && ["Approved", "Locked"].includes(entry.approvalStatus));
+      const daySet = new Set(approved.map((entry) => entry.activityDate));
+      const approvedMinutes = approved.reduce((sum, entry) => sum + toMinutes(entry.hours, entry.minutes), 0);
+      const standardMinutes = Number(config.standardHours) * 60 * Number(config.standardDays);
+      const overtimeMinutes = Math.max(0, approvedMinutes - standardMinutes);
+      const overtimePayment = Math.round((overtimeMinutes / 60) * Number(config.overtimeRate || 0));
+      const taskIncentives = approved.filter((entry) => entry.status === "Completed").length * Number(config.taskIncentive || 0);
+      const basicSalary = Number(config.basicSalary || 0);
+      const leaveDays = Math.max(0, Number(config.standardDays || 0) - daySet.size);
+      const attendanceDeduction = config.attendanceBased ? Math.round((basicSalary / Math.max(1, Number(config.standardDays || 1))) * leaveDays) : 0;
+      const allowances = Number(config.allowances || 0);
+      const incentives = Number(config.incentives || 0) + taskIncentives;
+      const deductions = Number(config.deductions || 0) + Number(config.professionalTax || 0) + Number(config.tds || 0) + Number(config.otherDeductions || 0) + attendanceDeduction;
+      const gross = basicSalary + allowances + incentives + overtimePayment;
+      return {
+        employeeId: employeeId(user),
+        month,
+        workingDays: Number(config.standardDays || 0),
+        daysWorked: daySet.size,
+        leaveDays,
+        approvedHours: approvedMinutes / 60,
+        approvedMinutes,
+        overtimeHours: overtimeMinutes / 60,
+        overtimeMinutes,
+        basicSalary,
+        allowances,
+        incentives,
+        overtimePayment,
+        deductions,
+        professionalTax: Number(config.professionalTax || 0),
+        tds: Number(config.tds || 0),
+        otherDeductions: Number(config.otherDeductions || 0),
+        gross,
+        net: gross - deductions
+      };
+    }
+
+    function money(value) {
+      return `INR ${Number(value || 0).toLocaleString("en-IN", { maximumFractionDigits: 0 })}`;
+    }
+
+    function amountInWords(value) {
+      return `${money(value)} only`;
+    }
+
+    function currentPayslipMonth() {
+      return $("payslipMonthFilter")?.value || today.slice(0, 7);
+    }
+
+    function upsertPayslip(user, month, status = "Generated") {
+      const calc = payslipCalculation(user, month);
+      const existing = state.payslips.find((payslip) => payslip.employeeUserId === user.id && payslip.salaryMonth === month);
+      const payload = {
+        payslipId: existing?.payslipId || crypto.randomUUID(),
+        employeeUserId: user.id,
+        employeeId: employeeId(user),
+        employeeName: user.name,
+        designation: user.designation || user.role || "Employee",
+        department: user.department || "Operations",
+        salaryMonth: month,
+        paymentStatus: existing?.paymentStatus === "Paid" ? "Paid" : status,
+        generatedDate: new Date().toISOString(),
+        generatedBy: currentUser?.name || "Admin",
+        bank: user.bank || "",
+        pan: user.pan || "",
+        ...calc
+      };
+      if (existing) Object.assign(existing, payload);
+      else state.payslips.unshift(payload);
+      return payload;
+    }
+
+    function filteredPayslipUsers() {
+      let users = state.users.filter((user) => user.role !== "Admin" && state.activityEntries.some((entry) => entry.userId === user.id));
+      const employee = $("payslipEmployeeFilter")?.value || "";
+      const dept = ($("payslipDepartmentFilter")?.value || "").toLowerCase();
+      const status = $("payslipStatusFilter")?.value || "";
+      const month = currentPayslipMonth();
+      if (employee) users = users.filter((user) => user.id === employee);
+      if (dept) users = users.filter((user) => String(user.department || "").toLowerCase().includes(dept));
+      if (status) users = users.filter((user) => (state.payslips.find((p) => p.employeeUserId === user.id && p.salaryMonth === month)?.paymentStatus || "Draft") === status);
+      return users;
+    }
+
+    function renderPayslips() {
+      if (currentUser?.role !== "Admin") return;
+      const empFilter = $("payslipEmployeeFilter");
+      const selected = empFilter.value;
+      empFilter.innerHTML = `<option value="">All</option>` + state.users.filter((user) => user.role !== "Admin").map((user) => `<option value="${user.id}" ${selected === user.id ? "selected" : ""}>${escapeHtml(user.name)}</option>`).join("");
+      if (!$("payslipMonthFilter").value) $("payslipMonthFilter").value = today.slice(0, 7);
+      const month = currentPayslipMonth();
+      const users = filteredPayslipUsers();
+      $("payslipRows").innerHTML = users.length ? users.map((user) => {
+        const config = salaryConfig(user);
+        const calc = payslipCalculation(user, month);
+        const slip = state.payslips.find((payslip) => payslip.employeeUserId === user.id && payslip.salaryMonth === month);
+        const status = slip?.paymentStatus || "Draft";
+        return `
+          <tr>
+            <td><strong>${escapeHtml(user.name)}</strong><br><small>${escapeHtml(user.email)}</small></td>
+            <td>${escapeHtml(employeeId(user))}</td>
+            <td>${escapeHtml(user.designation || "Employee")}<br>${escapeHtml(user.department || "Operations")}<br>${escapeHtml(month)}</td>
+            <td>${calc.workingDays} working<br>${calc.daysWorked} worked<br>${calc.leaveDays} leave</td>
+            <td>${formatMinutes(calc.approvedMinutes)}<br>OT ${formatMinutes(calc.overtimeMinutes)}</td>
+            <td>
+              Basic <input class="inline-input" data-salary="${user.id}" data-field="basicSalary" type="number" value="${config.basicSalary}"><br>
+              Allow. <input class="inline-input" data-salary="${user.id}" data-field="allowances" type="number" value="${config.allowances}"><br>
+              Incent. <input class="inline-input" data-salary="${user.id}" data-field="incentives" type="number" value="${config.incentives}">
+            </td>
+            <td>
+              Ded. <input class="inline-input" data-salary="${user.id}" data-field="deductions" type="number" value="${config.deductions}"><br>
+              TDS <input class="inline-input" data-salary="${user.id}" data-field="tds" type="number" value="${config.tds}"><br>
+              Tax <input class="inline-input" data-salary="${user.id}" data-field="professionalTax" type="number" value="${config.professionalTax}">
+            </td>
+            <td><strong>${money(calc.net)}</strong><br><small>Gross ${money(calc.gross)}</small></td>
+            <td><span class="status-pill ${status.toLowerCase()}">${escapeHtml(status)}</span></td>
+            <td>
+              <div class="admin-actions">
+                <button class="mini-btn dark-btn" data-generate-payslip="${user.id}">Generate</button>
+                <button class="mini-btn" data-preview-payslip="${user.id}">Preview PDF</button>
+                <button class="mini-btn" data-download-payslip="${user.id}">Download PDF</button>
+                <button class="mini-btn" data-email-payslip="${user.id}">Email</button>
+                <button class="mini-btn" data-paid-payslip="${user.id}">Mark Paid</button>
+              </div>
+            </td>
+          </tr>`;
+      }).join("") : `<tr><td colspan="10">Employees appear here after approved or submitted activity exists.</td></tr>`;
+    }
+
+    function renderMyPayslips() {
+      if (!currentUser || currentUser.role === "Admin") return;
+      const rows = state.payslips.filter((payslip) => payslip.employeeUserId === currentUser.id && payslip.paymentStatus !== "Draft");
+      $("myPayslipRows").innerHTML = rows.length ? rows.map((slip) => `
+        <tr>
+          <td>${escapeHtml(slip.salaryMonth)}</td>
+          <td>${money(slip.gross)}</td>
+          <td>${money(slip.deductions)}</td>
+          <td><strong>${money(slip.net)}</strong></td>
+          <td><span class="status-pill ${String(slip.paymentStatus).toLowerCase()}">${escapeHtml(slip.paymentStatus)}</span></td>
+          <td>${formatCommentTime(slip.generatedDate)}</td>
+          <td><button class="mini-btn dark-btn" data-user-download-payslip="${slip.payslipId}">Download PDF</button></td>
+        </tr>
+      `).join("") : `<tr><td colspan="7">No generated payslips yet.</td></tr>`;
+    }
+
     function renderAdmin() {
       $("adminAppUrl").value = state.settings?.appUrl || appLink();
       $("adminAgentDownloadUrl").value = state.settings?.tallyAgentDownloadUrl || "";
@@ -2188,6 +2926,9 @@ Task Master Admin`;
       renderActivity();
       renderTally();
       renderAdmin();
+      renderAdminActivity();
+      renderPayslips();
+      renderMyPayslips();
       saveState();
     }
 
@@ -2300,6 +3041,93 @@ Task Master Admin`;
       win.print();
     }
 
+    function downloadCsv(filename, headers, rows) {
+      const csv = [headers, ...rows].map((row) => row.map(csvEscape).join(",")).join("\r\n");
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = filename;
+      link.click();
+      URL.revokeObjectURL(link.href);
+    }
+
+    function payslipHtml(slip) {
+      return `
+        <!doctype html>
+        <html>
+          <head>
+            <title>Payslip ${escapeHtml(slip.employeeName)} ${escapeHtml(slip.salaryMonth)}</title>
+            <style>
+              @page { size: A4; margin: 18mm; }
+              body { font-family: Arial, sans-serif; color: #111; margin: 0; }
+              .sheet { max-width: 780px; margin: 0 auto; }
+              .head { display: flex; justify-content: space-between; border-bottom: 2px solid #111; padding-bottom: 14px; }
+              .logo { width: 54px; height: 54px; border-radius: 12px; background: #111; color: #fff; display: grid; place-items: center; font-weight: 800; }
+              h1, h2, p { margin: 0; }
+              h1 { font-size: 24px; }
+              h2 { text-align: center; margin: 22px 0; font-size: 20px; text-transform: uppercase; }
+              .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 28px; margin-bottom: 18px; }
+              .box { border: 1px solid #ddd; border-radius: 8px; padding: 12px; }
+              table { width: 100%; border-collapse: collapse; margin-top: 14px; }
+              th, td { border: 1px solid #ddd; padding: 9px; text-align: left; }
+              th { background: #f3f3f3; }
+              .total { font-size: 18px; font-weight: 800; }
+              .signature { margin-top: 50px; display: flex; justify-content: space-between; }
+              .muted { color: #666; font-size: 12px; }
+              @media print { button { display: none; } }
+            </style>
+          </head>
+          <body>
+            <div class="sheet">
+              <div class="head">
+                <div><h1>Task Master</h1><p>Company Address</p><p class="muted">Workflow and payroll management</p></div>
+                <div class="logo">TM</div>
+              </div>
+              <h2>Payslip - ${escapeHtml(slip.salaryMonth)}</h2>
+              <div class="grid">
+                <div class="box"><strong>Employee</strong><br>${escapeHtml(slip.employeeName)}<br>${escapeHtml(slip.employeeId)}</div>
+                <div class="box"><strong>Role</strong><br>${escapeHtml(slip.designation)}<br>${escapeHtml(slip.department)}</div>
+                <div class="box"><strong>Bank</strong><br>${escapeHtml(slip.bank || "Not provided")}</div>
+                <div class="box"><strong>PAN</strong><br>${escapeHtml(slip.pan || "Not provided")}</div>
+                <div class="box"><strong>Attendance</strong><br>Working days: ${slip.workingDays}<br>Days worked: ${slip.daysWorked}<br>Approved hours: ${formatMinutes(slip.approvedMinutes)}</div>
+                <div class="box"><strong>Payment</strong><br>Status: ${escapeHtml(slip.paymentStatus)}<br>Generated: ${formatCommentTime(slip.generatedDate)}</div>
+              </div>
+              <table>
+                <thead><tr><th>Earnings</th><th>Amount</th><th>Deductions</th><th>Amount</th></tr></thead>
+                <tbody>
+                  <tr><td>Basic salary</td><td>${money(slip.basicSalary)}</td><td>Deductions</td><td>${money(slip.deductions - slip.professionalTax - slip.tds - slip.otherDeductions)}</td></tr>
+                  <tr><td>Allowances</td><td>${money(slip.allowances)}</td><td>Professional tax</td><td>${money(slip.professionalTax)}</td></tr>
+                  <tr><td>Incentives</td><td>${money(slip.incentives)}</td><td>TDS</td><td>${money(slip.tds)}</td></tr>
+                  <tr><td>Overtime payment</td><td>${money(slip.overtimePayment)}</td><td>Other deductions</td><td>${money(slip.otherDeductions)}</td></tr>
+                  <tr class="total"><td>Gross salary</td><td>${money(slip.gross)}</td><td>Total deductions</td><td>${money(slip.deductions)}</td></tr>
+                  <tr class="total"><td colspan="3">Net salary</td><td>${money(slip.net)}</td></tr>
+                </tbody>
+              </table>
+              <p style="margin-top: 16px;"><strong>Amount in words:</strong> ${escapeHtml(amountInWords(slip.net))}</p>
+              <div class="signature"><span>Employee acknowledgement</span><span>Authorized signature</span></div>
+            </div>
+          </body>
+        </html>
+      `;
+    }
+
+    function openPayslipPdf(slip, printNow = false) {
+      const win = window.open("", "_blank");
+      win.document.write(payslipHtml(slip));
+      win.document.close();
+      win.focus();
+      if (printNow) win.print();
+    }
+
+    function payslipForUser(userId, createIfMissing = false) {
+      const user = state.users.find((item) => item.id === userId);
+      if (!user) return null;
+      const month = currentPayslipMonth();
+      let slip = state.payslips.find((item) => item.employeeUserId === user.id && item.salaryMonth === month);
+      if (!slip && createIfMissing) slip = upsertPayslip(user, month, "Generated");
+      return slip;
+    }
+
     document.querySelectorAll("[data-view-target]").forEach((button) => {
       button.addEventListener("click", () => setView(button.dataset.viewTarget));
     });
@@ -2311,6 +3139,41 @@ Task Master Admin`;
     $("closeDrawer").addEventListener("click", closeDrawer);
     $("cancelCreate").addEventListener("click", closeDrawer);
     $("drawerBackdrop").addEventListener("click", closeDrawer);
+    $("dailyTaskForm").addEventListener("submit", (event) => {
+      event.preventDefault();
+      saveDailyTaskFromForm();
+    });
+    $("clearDailyTask").addEventListener("click", resetDailyTaskForm);
+    $("saveDailyActivity").addEventListener("click", saveDailyActivity);
+    $("prevActivityMonth").addEventListener("click", () => {
+      const [year, month] = (state.activityUi.calendarMonth || today.slice(0, 7)).split("-").map(Number);
+      const date = new Date(year, month - 2, 1);
+      state.activityUi.calendarMonth = date.toISOString().slice(0, 7);
+      render();
+    });
+    $("nextActivityMonth").addEventListener("click", () => {
+      const [year, month] = (state.activityUi.calendarMonth || today.slice(0, 7)).split("-").map(Number);
+      const date = new Date(year, month, 1);
+      state.activityUi.calendarMonth = date.toISOString().slice(0, 7);
+      render();
+    });
+    ["adminActivitySearch", "adminActivityEmployee", "adminActivityStatus", "adminActivityFrom", "adminActivityTo", "adminActivityMonth", "adminActivityClient"].forEach((id) => {
+      $(id).addEventListener("input", renderAdminActivity);
+      $(id).addEventListener("change", renderAdminActivity);
+    });
+    $("exportAdminActivity").addEventListener("click", exportAdminActivityCsv);
+    ["payslipEmployeeFilter", "payslipDepartmentFilter", "payslipMonthFilter", "payslipStatusFilter"].forEach((id) => {
+      $(id).addEventListener("input", renderPayslips);
+      $(id).addEventListener("change", renderPayslips);
+    });
+    $("bulkPayslipDownload").addEventListener("click", () => {
+      filteredPayslipUsers().forEach((user) => upsertPayslip(user, currentPayslipMonth(), "Generated"));
+      const slips = state.payslips.filter((slip) => slip.salaryMonth === currentPayslipMonth());
+      const rows = slips.map((slip) => [slip.employeeName, slip.employeeId, slip.salaryMonth, slip.gross, slip.deductions, slip.net, slip.paymentStatus]);
+      downloadCsv(`payslips-${currentPayslipMonth()}.csv`, ["Employee", "Employee ID", "Month", "Gross", "Deductions", "Net", "Status"], rows);
+      addActivity(`Downloaded payslip batch: ${currentPayslipMonth()}`);
+      render();
+    });
     $("addComment").addEventListener("click", () => {
       const taskId = $("taskForm").dataset.editing;
       const task = state.tasks.find((item) => item.id === taskId);
@@ -2368,6 +3231,123 @@ Task Master Admin`;
       const copyLoginButton = event.target.closest("[data-copy-login]");
       const setStatusButton = event.target.closest("[data-set-status]");
       const tallyTabButton = event.target.closest("[data-tally-tab]");
+      const activityDateButton = event.target.closest("[data-activity-date]");
+      const editActivityButton = event.target.closest("[data-edit-activity-task]");
+      const deleteActivityButton = event.target.closest("[data-delete-activity-task]");
+      const approveActivityButton = event.target.closest("[data-approve-activity]");
+      const rejectActivityButton = event.target.closest("[data-reject-activity]");
+      const lockActivityButton = event.target.closest("[data-lock-activity]");
+      const reopenActivityButton = event.target.closest("[data-reopen-activity]");
+      const generatePayslipButton = event.target.closest("[data-generate-payslip]");
+      const previewPayslipButton = event.target.closest("[data-preview-payslip]");
+      const downloadPayslipButton = event.target.closest("[data-download-payslip]");
+      const emailPayslipButton = event.target.closest("[data-email-payslip]");
+      const paidPayslipButton = event.target.closest("[data-paid-payslip]");
+      const userDownloadPayslipButton = event.target.closest("[data-user-download-payslip]");
+
+      if (activityDateButton) {
+        state.activityUi.selectedDate = activityDateButton.dataset.activityDate;
+        state.activityUi.calendarMonth = activityDateButton.dataset.activityDate.slice(0, 7);
+        resetDailyTaskForm();
+        render();
+      }
+
+      if (editActivityButton) {
+        const entry = state.activityEntries.find((item) => item.activityId === editActivityButton.dataset.editActivityTask);
+        if (entry && canEditActivity(entry)) {
+          state.activityUi.selectedDate = entry.activityDate;
+          $("dailyTaskForm").dataset.editing = entry.activityId;
+          $("dailyTaskTitle").value = entry.taskTitle || "";
+          $("dailyTaskClient").value = entry.clientProject || "";
+          $("dailyTaskDescription").value = entry.taskDescription || "";
+          $("dailyTaskCategory").value = entry.taskCategory || "";
+          $("dailyTaskHours").value = entry.hours || 0;
+          $("dailyTaskMinutes").value = entry.minutes || 0;
+          $("dailyTaskStatus").value = entry.status || "Pending";
+          $("dailyTaskRemarks").value = entry.userRemarks || "";
+        }
+      }
+
+      if (deleteActivityButton) {
+        const entry = state.activityEntries.find((item) => item.activityId === deleteActivityButton.dataset.deleteActivityTask);
+        if (entry && canEditActivity(entry)) {
+          state.activityEntries = state.activityEntries.filter((item) => item.activityId !== entry.activityId);
+          addActivity(`Deleted activity task: ${entry.taskTitle}`);
+          render();
+        }
+      }
+
+      function updateApproval(id, status) {
+        const entry = state.activityEntries.find((item) => item.activityId === id);
+        if (!entry) return;
+        const remark = document.querySelector(`[data-admin-remark="${id}"]`)?.value || "";
+        entry.adminRemarks = remark;
+        entry.approvalStatus = status;
+        entry.updatedAt = new Date().toISOString();
+        if (status === "Approved" || status === "Locked") {
+          entry.approvedBy = currentUser?.name || "Admin";
+          entry.approvedAt = new Date().toISOString();
+        }
+        addActivity(`${status} activity: ${entry.taskTitle}`);
+        render();
+      }
+
+      if (approveActivityButton) updateApproval(approveActivityButton.dataset.approveActivity, "Approved");
+      if (rejectActivityButton) updateApproval(rejectActivityButton.dataset.rejectActivity, "Rejected");
+      if (lockActivityButton) updateApproval(lockActivityButton.dataset.lockActivity, "Locked");
+      if (reopenActivityButton) updateApproval(reopenActivityButton.dataset.reopenActivity, "Pending Approval");
+
+      if (generatePayslipButton) {
+        const user = state.users.find((item) => item.id === generatePayslipButton.dataset.generatePayslip);
+        if (user) {
+          upsertPayslip(user, currentPayslipMonth(), "Generated");
+          addActivity(`Generated payslip: ${user.name}`);
+          render();
+        }
+      }
+
+      if (previewPayslipButton) {
+        const slip = payslipForUser(previewPayslipButton.dataset.previewPayslip, true);
+        if (slip) openPayslipPdf(slip, false);
+        render();
+      }
+
+      if (downloadPayslipButton) {
+        const slip = payslipForUser(downloadPayslipButton.dataset.downloadPayslip, true);
+        if (slip) openPayslipPdf(slip, true);
+        render();
+      }
+
+      if (emailPayslipButton) {
+        const slip = payslipForUser(emailPayslipButton.dataset.emailPayslip, true);
+        const user = state.users.find((item) => item.id === emailPayslipButton.dataset.emailPayslip);
+        if (slip && user) {
+          const params = new URLSearchParams({
+            view: "cm",
+            fs: "1",
+            to: user.email,
+            su: `Payslip ${slip.salaryMonth}`,
+            body: `Dear ${user.name},\n\nYour payslip for ${slip.salaryMonth} has been generated. Please login to Task Master and download it from My Payslips.\n\nNet salary: ${money(slip.net)}\n\nRegards,\nTask Master Admin`
+          });
+          window.open(`https://mail.google.com/mail/?${params.toString()}`, "_blank", "noopener");
+        }
+        render();
+      }
+
+      if (paidPayslipButton) {
+        const slip = payslipForUser(paidPayslipButton.dataset.paidPayslip, true);
+        if (slip) {
+          slip.paymentStatus = "Paid";
+          slip.generatedDate = new Date().toISOString();
+          addActivity(`Marked payslip paid: ${slip.employeeName}`);
+          render();
+        }
+      }
+
+      if (userDownloadPayslipButton) {
+        const slip = state.payslips.find((item) => item.payslipId === userDownloadPayslipButton.dataset.userDownloadPayslip && item.employeeUserId === currentUser?.id);
+        if (slip) openPayslipPdf(slip, true);
+      }
 
       if (editButton) {
         const task = state.tasks.find((item) => item.id === editButton.dataset.editTask);
@@ -2423,6 +3403,10 @@ Task Master Admin`;
             name: invite.name,
             email: invite.email,
             role: invite.role,
+            designation: invite.role === "Admin" ? "Administrator" : "Employee",
+            department: "Operations",
+            bank: "",
+            pan: "",
             userId,
             password,
             status: "Active"
@@ -2573,6 +3557,26 @@ Task Master Admin`;
     document.body.addEventListener("change", (event) => {
       const select = event.target.closest("[data-status-task]");
       const tallyCompany = event.target.closest("#tallyCompanySelect");
+      const salaryInput = event.target.closest("[data-salary]");
+      const adminRemark = event.target.closest("[data-admin-remark]");
+      if (salaryInput) {
+        const userId = salaryInput.dataset.salary;
+        const field = salaryInput.dataset.field;
+        state.employeeSalary[userId] = state.employeeSalary[userId] || {};
+        state.employeeSalary[userId][field] = Number(salaryInput.value || 0);
+        renderPayslips();
+        saveState();
+        return;
+      }
+      if (adminRemark) {
+        const entry = state.activityEntries.find((item) => item.activityId === adminRemark.dataset.adminRemark);
+        if (entry) {
+          entry.adminRemarks = adminRemark.value;
+          entry.updatedAt = new Date().toISOString();
+          saveState();
+        }
+        return;
+      }
       if (tallyCompany) {
         state.tally.selectedCompany = tallyCompany.value;
         state.tally.syncStatus = `Selected ${tallyCompany.value}`;
