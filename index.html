@@ -1470,14 +1470,14 @@
           <div class="admin-grid">
             <form class="admin-card" id="inviteForm">
               <h2>Invite User</h2>
-              <p class="admin-note">Invite a person by Gmail. After the invite is pending, type the User ID and Password you want for that person, then accept the invite and send their login details.</p>
+              <p class="admin-note">Invite a person by Gmail. After the invite is pending, type the User ID and Password you want for that person, then accept the invite and send their login details. Upload the Tally agent as a GitHub Release asset because it is too large for GitHub Pages browser upload.</p>
               <label>
                 App link users should open
                 <input id="adminAppUrl" placeholder="Paste hosted/shared app link">
               </label>
               <label>
                 Tally Agent download URL
-                <input id="adminAgentDownloadUrl" placeholder="Paste latest .exe or installer download URL">
+                <input id="adminAgentDownloadUrl" placeholder="Paste GitHub Release asset URL, or leave blank">
               </label>
               <label>
                 Full name
@@ -1626,7 +1626,7 @@
         },
         settings: {
           appUrl: "",
-          tallyAgentDownloadUrl: "downloads/Tally-Two-Way-Sync.exe"
+          tallyAgentDownloadUrl: ""
         },
         tally: {
           agentConnected: false,
@@ -1664,8 +1664,9 @@
       try {
         const loaded = { ...createState(), ...JSON.parse(saved) };
         if (!loaded.settings) loaded.settings = createState().settings;
-        if (!loaded.settings.tallyAgentDownloadUrl || loaded.settings.tallyAgentDownloadUrl === "Tally Two-Way Sync.exe") {
-          loaded.settings.tallyAgentDownloadUrl = "downloads/Tally-Two-Way-Sync.exe";
+        const oldLocalDownloads = ["Tally Two-Way Sync.exe", "downloads/Tally-Two-Way-Sync.exe", "Tally-Two-Way-Sync.exe"];
+        if (oldLocalDownloads.includes(loaded.settings.tallyAgentDownloadUrl)) {
+          loaded.settings.tallyAgentDownloadUrl = "";
         }
         return loaded;
       } catch {
@@ -1687,6 +1688,27 @@
       url.search = "";
       url.hash = "";
       return url.toString();
+    }
+
+    function agentDownloadLink() {
+      const configured = state.settings?.tallyAgentDownloadUrl?.trim();
+      if (configured) return configured.replace(/Tally-Two-Way-Sync\.exe$/i, "Tally-Two-Way-Sync.zip");
+      if (window.location.hostname.endsWith("github.io")) {
+        const owner = window.location.hostname.split(".")[0];
+        const repo = window.location.pathname.split("/").filter(Boolean)[0];
+        if (owner && repo) {
+          return `https://github.com/${owner}/${repo}/releases/latest/download/Tally-Two-Way-Sync.zip`;
+        }
+      }
+      return "Tally-Two-Way-Sync.zip";
+    }
+
+    function agentReleasePageLink() {
+      if (!window.location.hostname.endsWith("github.io")) return "";
+      const owner = window.location.hostname.split(".")[0];
+      const repo = window.location.pathname.split("/").filter(Boolean)[0];
+      if (!owner || !repo) return "";
+      return `https://github.com/${owner}/${repo}/releases`;
     }
 
     function credentialLoginLink(user) {
@@ -1965,6 +1987,8 @@
 
     function renderTally() {
       ensurePairingCode();
+      const downloadLink = agentDownloadLink();
+      const releaseLink = agentReleasePageLink();
       if (!state.tally.agentConnected) {
         $("tallyPanel").innerHTML = `
           <div class="tally-app-card">
@@ -1973,12 +1997,16 @@
               <p>The web app does not connect directly to Tally. Install the local Windows agent, pair it with this account, and keep Tally running on that computer.</p>
             </div>
             <div class="tally-actions">
-              <a class="mini-btn dark-btn" id="downloadTallyAgent" href="${escapeHtml(state.settings.tallyAgentDownloadUrl || "downloads/Tally-Two-Way-Sync.exe")}" download>Download Agent</a>
+              <a class="mini-btn dark-btn" id="downloadTallyAgent" href="${escapeHtml(downloadLink)}">Download Agent</a>
+              <button class="mini-btn" id="copyAgentDownloadLink">Copy Download Link</button>
+              ${releaseLink ? `<a class="mini-btn" href="${escapeHtml(releaseLink)}" target="_blank" rel="noreferrer">Open Releases</a>` : ""}
               <button class="mini-btn" id="copyPairingCode">Copy Pairing Code</button>
             </div>
           </div>
+          <p class="tally-note"><strong>Download URL:</strong> ${escapeHtml(downloadLink)}</p>
+          <p class="tally-note">If the download shows 404 or file unavailable, publish a GitHub Release with an asset named exactly <strong>Tally-Two-Way-Sync.zip</strong>, or paste the exact asset URL in Admin.</p>
           <div class="setup-steps">
-            <div class="setup-step"><div><strong>Download the Tally Sync Agent</strong><br>Use the latest Windows installer or executable configured by Admin.</div></div>
+            <div class="setup-step"><div><strong>Download the Tally Sync Agent</strong><br>Use the latest Windows installer uploaded by Admin in GitHub Releases.</div></div>
             <div class="setup-step"><div><strong>Open the agent on your Windows computer</strong><br>The agent runs locally and talks to Tally on that computer.</div></div>
             <div class="setup-step"><div><strong>Keep Tally running</strong><br>Enable Tally XML/API access in Tally Prime.</div></div>
             <div class="setup-step"><div><strong>Enter this pairing code in the agent</strong></div></div>
@@ -2440,6 +2468,12 @@ Task Master Admin`;
       if (event.target.closest("#copyPairingCode")) {
         navigator.clipboard?.writeText(state.tally.pairingCode);
         addActivity("Copied Tally pairing code");
+        render();
+      }
+
+      if (event.target.closest("#copyAgentDownloadLink")) {
+        navigator.clipboard?.writeText(agentDownloadLink());
+        addActivity("Copied Tally agent download link");
         render();
       }
 
